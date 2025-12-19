@@ -7,7 +7,14 @@ app_license = "mit"
 
 # Apps
 # ------------------
-
+doc_events = {
+    "Sales Invoice": {
+        "before_insert": "customization_iconcept.naming_series.before_insert"
+    },
+    "POS Invoice": {
+        "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
+    }
+}
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
