@@ -2,6 +2,9 @@ import frappe
 from frappe.utils import nowdate
 
 def create_journal_entry_for_pos(doc, method):
+
+    if doc.doctype == "Sales Invoice" and not doc.is_pos:
+        return
     # Check if a journal entry already exists for this POS
     if not frappe.db.exists("Mode of Payment", {"custom_customer_name": doc.customer}):
         return

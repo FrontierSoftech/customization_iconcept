@@ -13,6 +13,9 @@ doc_events = {
     },
     "POS Invoice": {
         "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
+    },
+    "Sales Invoice": {
+        "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
     }
 }
 # required_apps = []
