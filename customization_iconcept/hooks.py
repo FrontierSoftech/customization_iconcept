@@ -18,6 +18,11 @@ doc_events = {
         "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
     }
 }
+
+doctype_js = {
+    "POS Invoice": "public/js/pos_reference_prompt.js"
+}
+
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
@@ -93,7 +98,7 @@ doc_events = {
 # ------------
 
 # before_install = "customization_iconcept.install.before_install"
-# after_install = "customization_iconcept.install.after_install"
+after_install = "customization_iconcept.install.after_install"
 
 # Uninstallation
 # ------------
