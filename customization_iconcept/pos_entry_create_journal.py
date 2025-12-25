@@ -24,7 +24,8 @@ def create_journal_entry_for_pos(doc, method):
                     "party": mop.custom_customer_name,
                     "debit_in_account_currency": pay.base_amount,
                     "credit_in_account_currency": 0,
-                    "reference_detail_no": pay.reference_no
+                    "reference_detail_no": pay.reference_no,
+                    "branch": doc.branch
                 })
 
         # Case 2: Normal Mode of Payment account
@@ -33,7 +34,8 @@ def create_journal_entry_for_pos(doc, method):
                 accounts.append({
                     "account": f"{pay.mode_of_payment} - {company_abbr}",
                     "debit_in_account_currency": pay.base_amount,
-                    "credit_in_account_currency": 0                    
+                    "credit_in_account_currency": 0  ,
+                    "branch": doc.branch                 
                 })
 
     # Credit the invoice customer for total amount
@@ -42,7 +44,8 @@ def create_journal_entry_for_pos(doc, method):
         "party_type": "Customer",
         "party": doc.customer,
         "credit_in_account_currency": doc.grand_total,
-        "debit_in_account_currency": 0
+        "debit_in_account_currency": 0,
+        "branch": doc.branch
     })
 
     # Create Journal Entry
