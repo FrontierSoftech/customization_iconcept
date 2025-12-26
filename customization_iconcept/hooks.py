@@ -12,15 +12,18 @@ doc_events = {
         "before_insert": "customization_iconcept.naming_series.before_insert"
     },
     "POS Invoice": {
+        "before_save": "customization_iconcept.set_branch.before_save",
         "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
     },
     "Sales Invoice": {
+        "before_save": "customization_iconcept.set_branch.before_save",
         "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
     }
 }
 
 doctype_js = {
-    "POS Invoice": "public/js/pos_reference_prompt.js"
+    "POS Invoice": "public/js/pos_reference_prompt.js",
+    "Sales Invoice": "public/js/pos_reference_prompt_sale.js"
 }
 
 # required_apps = []
@@ -98,7 +101,7 @@ doctype_js = {
 # ------------
 
 # before_install = "customization_iconcept.install.before_install"
-after_install = "customization_iconcept.install.after_install"
+# after_install = "customization_iconcept.install.after_install"
 
 # Uninstallation
 # ------------
