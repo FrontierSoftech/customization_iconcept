@@ -29,7 +29,9 @@ after_migrate = "customization_iconcept.install.after_install"
 # }
 
 doctype_js = {
-    "Purchase Order": "public/js/required_by.js"
+    "Purchase Order": "public/js/required_by.js",
+    "Purchase Receipt": "public/js/serial_entry_compare_with_purchase_receipt.js",
+    "Sales Invoice": "public/js/validation_on_sales.js"
 }
 
 # required_apps = []
