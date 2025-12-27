@@ -9,22 +9,23 @@ app_license = "mit"
 # ------------------
 doc_events = {
     "Sales Invoice": {
-        "before_insert": "customization_iconcept.naming_series.before_insert"
+        "before_insert": "customization_iconcept.naming_series.before_insert",
+        "on_submit": "customization_iconcept.journal_from_sales.create_finance_lender_jv"
     },
-    "POS Invoice": {
-        "before_save": "customization_iconcept.set_branch.before_save",
-        "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
-    },
-    "Sales Invoice": {
-        "before_save": "customization_iconcept.set_branch.before_save",
-        "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
-    }
+    # "POS Invoice": {
+    #     "before_save": "customization_iconcept.set_branch.before_save",
+    #     "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
+    # },
+    # "Sales Invoice": {
+    #     "before_save": "customization_iconcept.set_branch.before_save",
+    #     "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
+    # }
 }
 
-doctype_js = {
-    "POS Invoice": "public/js/pos_reference_prompt.js",
-    "Sales Invoice": "public/js/pos_reference_prompt_sale.js"
-}
+# doctype_js = {
+#     "POS Invoice": "public/js/pos_reference_prompt.js",
+#     "Sales Invoice": "public/js/pos_reference_prompt_sale.js"
+# }
 
 # required_apps = []
 
