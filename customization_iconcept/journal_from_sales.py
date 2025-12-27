@@ -33,18 +33,23 @@ def create_finance_lender_jv(doc, method):
             "account": default_account,
             "party_type": "Customer",
             "party": row.finance_lender,
-            "debit_in_account_currency": 0,
-            "credit_in_account_currency": row.amount,
+            "debit_in_account_currency": row.amount,
+            "credit_in_account_currency": 0,
             "user_remark":row.reference_no,
-            "branch":doc.branch
+            "branch":doc.branch,
+            "cost_center": doc.cost_center
         })
         je1.append("accounts", {
             "account": f"Debtors - {company_abbr}",  # or another relevant account
             "party_type": "Customer",
             "party": doc.customer,
-            "debit_in_account_currency": row.amount,
-            "credit_in_account_currency": 0,
-            "branch":doc.branch
+            "debit_in_account_currency": 0,
+            "credit_in_account_currency": row.amount,
+            "branch":doc.branch,
+            "cost_center": doc.cost_center,
+            "reference_type": doc.doctype,
+            "reference_name": doc.name,
+            "reference_due_date": doc.posting_date
         })
 
         je1.insert()

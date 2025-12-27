@@ -28,6 +28,10 @@ after_migrate = "customization_iconcept.install.after_install"
 #     "Sales Invoice": "public/js/pos_reference_prompt_sale.js"
 # }
 
+doctype_js = {
+    "Purchase Order": "public/js/required_by.js"
+}
+
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
