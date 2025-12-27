@@ -22,6 +22,7 @@ doc_events = {
     # }
 }
 
+after_migrate = "customization_iconcept.install.after_install"
 # doctype_js = {
 #     "POS Invoice": "public/js/pos_reference_prompt.js",
 #     "Sales Invoice": "public/js/pos_reference_prompt_sale.js"
