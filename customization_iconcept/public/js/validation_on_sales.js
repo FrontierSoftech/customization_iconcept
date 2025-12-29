@@ -3,14 +3,14 @@ frappe.ui.form.on('Sales Invoice', {
     discount_amount: function(frm) {
         calculate_grand_total1(frm);
     },
-    before_save: function(frm) {
-        calculate_grand_total1(frm);
-        calculate_grand_total(frm);
-        if (frm.doc.custom_balance !== 0) {
-                frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
-                frappe.validated = false;
-        }
-    },
+    // before_save: function(frm) {
+    //     calculate_grand_total1(frm);
+    //     calculate_grand_total(frm);
+    //     if (frm.doc.custom_balance !== 0) {
+    //             frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
+    //             frappe.validated = false;
+    //     }
+    // },
     before_submit: function(frm) {
         calculate_grand_total1(frm);
         calculate_grand_total(frm);
