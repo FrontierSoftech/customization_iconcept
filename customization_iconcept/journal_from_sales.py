@@ -5,6 +5,24 @@ def create_finance_lender_jv(doc, method):
     """
     Create Journal Entry for each row in custom_finance_lender_payments
     """
+    if doc.is_return:
+        return
+    
+    customer_group = frappe.db.get_value(
+        "Customer",
+        doc.customer,
+        "customer_group"
+    )
+
+    stop_auto_creation = frappe.db.get_value(
+        "Customer Group",
+        customer_group,
+        "custom_stop_auto_creation"
+    )
+
+    if stop_auto_creation:
+        return
+    
     for row in doc.custom_finance_lender_payments:
         if not row.finance_lender or not row.amount:
             continue  # skip empty rows

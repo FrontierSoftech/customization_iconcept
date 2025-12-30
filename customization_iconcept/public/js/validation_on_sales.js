@@ -11,14 +11,46 @@ frappe.ui.form.on('Sales Invoice', {
     //             frappe.validated = false;
     //     }
     // },
-    before_submit: function(frm) {
-        calculate_grand_total1(frm);
-        calculate_grand_total(frm);
-        if (frm.doc.custom_balance !== 0) {
-                frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
-                frappe.validated = false;
+    before_submit: async function(frm) {
+        try {
+
+            calculate_grand_total1(frm);
+            calculate_grand_total(frm);
+
+            if (frm.doc.is_return) {
+                return;
             }
-    }
+            // Step 1: Get the Customer Group from the selected Customer
+            const customer_res = await frappe.db.get_value("Customer", frm.doc.customer, "customer_group");
+            if (customer_res.message) {
+                const customer_group = customer_res.message.customer_group;
+                // Step 2: Get the custom checkbox value from the Customer Group
+                const group_res = await frappe.db.get_value("Customer Group", customer_group, "custom_stop_auto_creation");
+                if (group_res.message) {
+                    const stop_auto_creation = group_res.message.custom_stop_auto_creation;
+                    // If auto creation is stopped (i.e. checkbox is checked), prevent saving
+                    if (!stop_auto_creation) {
+                        if (frm.doc.custom_balance !== 0) {
+                            frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
+                            frappe.validated = false;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            frappe.throw(__('An error occurred while checking customer group settings.'));
+        }
+       
+    },
+    // before_submit: function(frm) {
+    //     calculate_grand_total1(frm);
+    //     calculate_grand_total(frm);
+    //     if (frm.doc.custom_balance !== 0) {
+    //             frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
+    //             frappe.validated = false;
+    //         }
+    // }
 });
 
 frappe.ui.form.on('Sales Invoice Item', {
