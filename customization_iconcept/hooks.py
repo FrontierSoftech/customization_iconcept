@@ -31,8 +31,17 @@ after_migrate = "customization_iconcept.install.after_install"
 doctype_js = {
     "Purchase Order": "public/js/required_by.js",
     "Purchase Receipt": "public/js/serial_entry_compare_with_purchase_receipt.js",
-    "Sales Invoice": "public/js/validation_on_sales.js"
+    "Sales Invoice": "public/js/validation_on_sales.js",
+    "Payment Entry": "public/js/reference_no_payment.js"
 }
+
+
+# Purchase Receipt Order Table
+# override_whitelisted_methods = {
+#     "erpnext.controllers.queries.purchase_order_query":
+#         "customization_iconcept.overrides.purchase_receipt_order_table.purchase_order_query"
+# }
+
 
 # required_apps = []
 
