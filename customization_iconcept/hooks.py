@@ -32,7 +32,8 @@ doctype_js = {
     "Purchase Order": "public/js/required_by.js",
     "Purchase Receipt": "public/js/serial_entry_compare_with_purchase_receipt.js",
     "Sales Invoice": "public/js/validation_on_sales.js",
-    "Payment Entry": "public/js/reference_no_payment.js"
+    "Payment Entry": "public/js/reference_no_payment.js",
+    "Journal Entry": "public/js/journal_entry.js"
 }
 
 
