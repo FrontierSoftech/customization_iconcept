@@ -10,8 +10,12 @@ app_license = "mit"
 doc_events = {
     "Sales Invoice": {
         "before_insert": "customization_iconcept.naming_series.before_insert",
-        "on_submit": "customization_iconcept.journal_from_sales.create_finance_lender_jv"
+        "on_submit": "customization_iconcept.journal_from_sales.create_finance_lender_jv",
+        "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry"
     },
+    "Journal Entry": {
+        "before_cancel":"customization_iconcept.cancel_the_journal_entry.cancel_linked_journal_entery"
+    }
     # "POS Invoice": {
     #     "before_save": "customization_iconcept.set_branch.before_save",
     #     "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"

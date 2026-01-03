@@ -1,4 +1,5 @@
 import frappe
+from frappe.model.naming import make_autoname
 
 def before_insert(doc, method):
     if doc.is_pos:
@@ -12,7 +13,9 @@ def before_insert(doc, method):
             # doc.custom_vch_abbr = "SR"
             doc.naming_series = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#"
             doc.name = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#"
+            # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#")
         else:
             # doc.custom_vch_abbr = "S"
             doc.naming_series = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#"
             doc.name = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#"
+            # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#")

@@ -2,15 +2,9 @@ frappe.ui.form.on('Sales Invoice', {
 
     discount_amount: function(frm) {
         calculate_grand_total1(frm);
+        calculate_grand_total(frm);
     },
-    // before_save: function(frm) {
-    //     calculate_grand_total1(frm);
-    //     calculate_grand_total(frm);
-    //     if (frm.doc.custom_balance !== 0) {
-    //             frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
-    //             frappe.validated = false;
-    //     }
-    // },
+
     before_submit: async function(frm) {
         try {
 
@@ -43,14 +37,55 @@ frappe.ui.form.on('Sales Invoice', {
         }
        
     },
-    // before_submit: function(frm) {
-    //     calculate_grand_total1(frm);
-    //     calculate_grand_total(frm);
-    //     if (frm.doc.custom_balance !== 0) {
-    //             frappe.msgprint(__('Payment List Amount Should be Zero .',[frm.doc.custom_balance]));
-    //             frappe.validated = false;
-    //         }
-    // }
+
+    custom_is_this_tax_included_in_basic_rate(frm) {
+        const checked = frm.doc.custom_is_this_tax_included_in_basic_rate;
+
+        frm.doc.taxes.forEach(row => {
+            frappe.model.set_value(row.doctype, row.name, 'included_in_print_rate', checked);
+        });
+
+        calculate_grand_total1(frm);
+        calculate_grand_total(frm);
+    },
+    refresh(frm) {
+        const checked = frm.doc.custom_is_this_tax_included_in_basic_rate;
+
+        frm.doc.taxes.forEach(row => {
+            frappe.model.set_value(row.doctype, row.name, 'included_in_print_rate', checked);
+        });
+        frm.fields_dict['custom_finance_lender_payments'].grid.get_field('finance_lender').get_query = function(doc, cdt, cdn) {
+            let child = locals[cdt][cdn];
+            if (child.mode === "Account" ) {
+                return {
+                    filters: {
+                        account_type: ['in', ['Bank', 'Cash']],
+                        is_group: 0
+                    }
+                };
+            }
+            if (child.mode === "Customer" ) {
+                return {
+                    filters: {
+                        customer_group: "Finance Lender"
+                    }
+                };
+            }
+        };
+    },
+    before_save: function(frm) {
+        let total_payment = 0;
+        // Ensure the custom_balance is always calculated based on the latest rounded_total
+        frm.refresh_field('custom_balance');
+            frm.set_value('custom_balance', frm.doc.outstanding_amount);
+            (frm.doc.custom_finance_lender_payments || []).forEach(function(item) {
+                total_payment += item.amount || 0;
+            });
+        // Calculate and set custom_balance again after payments are summed up
+            const balance = (frm.doc.custom_balance || 0) - total_payment;
+            frm.set_value('custom_balance', balance);
+    }
+
 });
 
 frappe.ui.form.on('Sales Invoice Item', {
@@ -67,7 +102,7 @@ frappe.ui.form.on('Sales Invoice Item', {
 
 // Trigger recalculation of grand total when a new item is selected or updated in Custom Payment List
 frappe.ui.form.on('Finance Lender Options', {
-    
+
     finance_lender: function(frm, cdt, cdn) {
         calculate_grand_total(frm);
     },
@@ -75,18 +110,11 @@ frappe.ui.form.on('Finance Lender Options', {
         calculate_grand_total(frm);
     }
 });
-frappe.ui.form.on('Sales Invoice Payment', {
-    
-    mode_of_payment: function(frm, cdt, cdn) {
-        calculate_grand_total(frm);
-    },
-    amount: function(frm, cdt, cdn) {
-        calculate_grand_total(frm);
-    }
-});
+
 frappe.ui.form.on('Sales Taxes and Charges', {
     rate: function(frm, cdt, cdn) {
         calculate_grand_total1(frm);
+        calculate_grand_total(frm)
     }
 });
 
@@ -95,30 +123,26 @@ function calculate_grand_total1(frm) {
     // Ensure the custom_balance is always calculated based on the latest rounded_total
     setTimeout(() => {
         frm.refresh_field('custom_balance');
-            frm.set_value('custom_balance', frm.doc.rounded_total);
-            frm.set_value('custom_total_amount', frm.doc.rounded_total);
-            (frm.doc.custom_finance_lender_payments || []).forEach(function(item) {
-                total_payment += item.amount || 0;
-            });
-            (frm.doc.payments || []).forEach(function(item) {
-                total_payment += item.amount || 0;
-            });
-    // Calculate and set custom_balance again after payments are summed up
-            const balance = (frm.doc.custom_balance || 0) - total_payment;
-            frm.set_value('custom_balance', balance);
+        frm.set_value('custom_balance', frm.doc.outstanding_amount);
+        frm.set_value('custom_total_amount', frm.doc.outstanding_amount);
+        (frm.doc.custom_finance_lender_payments || []).forEach(function(item) {
+            total_payment += item.amount || 0;
+        });
+    
+    // Clate and set custom_balance again after payments are summed up
+        const balance = (frm.doc.custom_balance || 0) - total_payment;
+        frm.set_value('custom_balance', balance);
     }, 100);
 }
 function calculate_grand_total(frm) {
-    let balance = frm.doc.rounded_total || 0;
+    let balance = frm.doc.outstanding_amount || 0;
 
     (frm.doc.custom_finance_lender_payments || []).forEach(function(row) {
         if (row.amount) {
             balance -= row.amount;
         }
     });
-    (frm.doc.payments || []).forEach(function(item) {
-        balance -= item.amount || 0;
-    });
+   
     // Update custom_balance
     frm.set_value('custom_balance', (balance));
 }
