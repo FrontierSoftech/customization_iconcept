@@ -78,6 +78,7 @@ frappe.ui.form.on('Sales Invoice', {
         // Ensure the custom_balance is always calculated based on the latest rounded_total
         frm.refresh_field('custom_balance');
             frm.set_value('custom_balance', frm.doc.outstanding_amount);
+            frm.set_value('custom_total_amount', frm.doc.outstanding_amount);
             (frm.doc.custom_finance_lender_payments || []).forEach(function(item) {
                 total_payment += item.amount || 0;
             });

@@ -2,6 +2,7 @@ import frappe
 from frappe.model.naming import make_autoname
 
 def before_insert(doc, method):
+    company_abbr = doc.get("custom_company_abbr")[:2]
     if doc.is_pos:
         for item in doc.items:
             if item.pos_invoice:
@@ -11,11 +12,11 @@ def before_insert(doc, method):
     else:
         if doc.is_return:
             # doc.custom_vch_abbr = "SR"
-            doc.naming_series = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#"
-            doc.name = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#"
+            doc.naming_series = f".{company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#"
+            doc.name = f".{company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#"
             # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-.YY./.#")
         else:
             # doc.custom_vch_abbr = "S"
-            doc.naming_series = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#"
-            doc.name = f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#"
+            doc.naming_series = f".{company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#"
+            doc.name = f".{company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#"
             # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-.YY./.#")
