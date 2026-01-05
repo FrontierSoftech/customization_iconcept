@@ -15,7 +15,28 @@ doc_events = {
     },
     "Journal Entry": {
         "before_cancel":"customization_iconcept.cancel_the_journal_entry.cancel_linked_journal_entery"
-    }
+    },
+    "Sales Order": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_sales_order"
+    },
+    "Delivery Note": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_delivery_note"
+    },
+    "Purchase Invoice": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_invoice"
+    },
+    "Purchase Order": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_order"
+    },
+    "Purchase Receipt": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_receipt"
+    },
+    "Payment Entry": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_payment_entry"
+    },
+    "Journal Entry": {
+        "before_insert": "customization_iconcept.naming_series.naming_series_journal_entry"
+    },
     # "POS Invoice": {
     #     "before_save": "customization_iconcept.set_branch.before_save",
     #     "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
