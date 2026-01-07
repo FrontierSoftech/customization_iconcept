@@ -47,6 +47,8 @@ def create_finance_lender_jv(doc, method):
             je1.cheque_date = doc.posting_date
             je1.custom_reference_doctype = doc.doctype
             je1.custom_reference_name = doc.name
+            je1.custom_branch = doc.branch
+            je1.custom_cost_center = doc.cost_center
 
             # Debit / Credit entries
             je1.append("accounts", {
@@ -83,6 +85,8 @@ def create_finance_lender_jv(doc, method):
             je1.remark = f"Finance Lender Payment - {row.reference_no}"
             je1.custom_reference_doctype = doc.doctype
             je1.custom_reference_name = doc.name
+            je1.custom_branch = doc.branch
+            je1.custom_cost_center = doc.cost_center
 
             # Debit / Credit entries
             je1.append("accounts", {
