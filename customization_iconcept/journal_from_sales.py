@@ -40,7 +40,7 @@ def create_finance_lender_jv(doc, method):
             # Create first Journal Entry
             je1 = frappe.new_doc("Journal Entry")
             je1.voucher_type = "Journal Entry"
-            je1.posting_date = nowdate()
+            je1.posting_date = doc.posting_date
             je1.company = doc.company
             je1.remark = f"Finance Lender Payment - {row.reference_no}"
             je1.cheque_no = row.reference_no
@@ -80,7 +80,7 @@ def create_finance_lender_jv(doc, method):
 
             je1 = frappe.new_doc("Journal Entry")
             je1.voucher_type = "Journal Entry"
-            je1.posting_date = nowdate()
+            je1.posting_date = doc.posting_date
             je1.company = doc.company
             je1.remark = f"Finance Lender Payment - {row.reference_no}"
             je1.custom_reference_doctype = doc.doctype
