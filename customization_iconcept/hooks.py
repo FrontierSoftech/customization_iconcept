@@ -11,7 +11,9 @@ doc_events = {
     "Sales Invoice": {
         "before_insert": "customization_iconcept.naming_series.before_insert",
         "on_submit": "customization_iconcept.journal_from_sales.create_finance_lender_jv",
-        "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry"
+        "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry",
+        "before_save": "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
+        
     },
     "Journal Entry": {
         "before_cancel":"customization_iconcept.cancel_the_journal_entry.cancel_linked_journal_entery"
@@ -56,7 +58,10 @@ after_migrate = "customization_iconcept.install.after_install"
 doctype_js = {
     "Purchase Order": "public/js/required_by.js",
     "Purchase Receipt": "public/js/serial_entry_compare_with_purchase_receipt.js",
-    "Sales Invoice": "public/js/validation_on_sales.js",
+    "Sales Invoice": [
+        "public/js/validation_on_sales.js",
+        "public/js/custom_editable_party_name.js"
+    ], 
     "Payment Entry": "public/js/reference_no_payment.js",
     "Journal Entry": "public/js/journal_entry.js"
 }
