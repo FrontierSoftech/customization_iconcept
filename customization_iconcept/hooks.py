@@ -12,8 +12,8 @@ doc_events = {
         "before_insert": "customization_iconcept.naming_series.before_insert",
         "on_submit": "customization_iconcept.journal_from_sales.create_finance_lender_jv",
         "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry",
-        "before_save": "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
-        
+        "before_save": "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply",
+        "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields"        
     },
     "Journal Entry": {
         "before_cancel":"customization_iconcept.cancel_the_journal_entry.cancel_linked_journal_entery"
@@ -25,7 +25,8 @@ doc_events = {
         "before_insert": "customization_iconcept.naming_series.naming_series_delivery_note"
     },
     "Purchase Invoice": {
-        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_invoice"
+        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_invoice",
+        "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields"
     },
     "Purchase Order": {
         "before_insert": "customization_iconcept.naming_series.naming_series_purchase_order"
