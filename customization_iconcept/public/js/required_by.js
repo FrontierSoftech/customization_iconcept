@@ -17,7 +17,10 @@ frappe.ui.form.on('Purchase Order', {
     schedule_date: function(frm) {
         update_items_schedule_date(frm);
         frm._old_schedule_date = frm.doc.schedule_date;
-    }
+    },
+    __newname(frm) {
+		frm.set_value('bill_no', frm.doc.__newname);
+	}
 });
 
 /**
