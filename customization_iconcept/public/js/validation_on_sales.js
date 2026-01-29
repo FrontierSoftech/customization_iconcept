@@ -133,7 +133,7 @@ function calculate_grand_total1(frm) {
     // Clate and set custom_balance again after payments are summed up
         const balance = (frm.doc.custom_balance || 0) - total_payment;
         frm.set_value('custom_balance', balance);
-    }, 100);
+    }, 1000);
 }
 function calculate_grand_total(frm) {
     let balance = frm.doc.outstanding_amount || 0;

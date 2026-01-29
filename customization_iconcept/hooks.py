@@ -93,7 +93,7 @@ doctype_js = {
 
 # include js, css files in header of desk.html
 # app_include_css = "/assets/customization_iconcept/css/customization_iconcept.css"
-# app_include_js = "/assets/customization_iconcept/js/customization_iconcept.js"
+# app_include_js = "/assets/customization_iconcept/js/journal_entry.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/customization_iconcept/css/customization_iconcept.css"
