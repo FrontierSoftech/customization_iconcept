@@ -1,22 +1,94 @@
 
 frappe.ui.form.on('Journal Entry', {
 
+    // refresh(frm) {
+    //     frm.fields_dict['accounts'].grid.get_field('custom_reference_name_copy').get_query =
+    //         function (doc, cdt, cdn) {
+    //             const row = locals[cdt][cdn];
+
+    //             if (row.reference_type !== "Journal Entry" || !row.account) {
+    //                 return {};
+    //             }
+
+    //             return {
+    //                 query: "customization_iconcept.api.journal_entry_with_outstanding",
+    //                 filters: {
+    //                     account: row.account,
+    //                     party: row.party
+    //                 }
+    //             };
+    //         };
+    // },
     refresh(frm) {
         frm.fields_dict['accounts'].grid.get_field('custom_reference_name_copy').get_query =
             function (doc, cdt, cdn) {
-                const row = locals[cdt][cdn];
 
-                if (row.reference_type !== "Journal Entry" || !row.account) {
-                    return {};
+                let jvd = locals[cdt][cdn];
+
+                // ---- JOURNAL ENTRY (custom query) ----
+                if (jvd.reference_type === "Journal Entry") {
+                    frappe.model.validate_missing(jvd, "account");
+                    frappe.model.validate_missing(jvd, "party");
+
+                    return {
+                        query: "customization_iconcept.api.journal_entry_with_outstanding",
+                        filters: {
+                            account: jvd.account,
+                            party: jvd.party
+                        }
+                    };
                 }
 
-                return {
-                    query: "customization_iconcept.api.journal_entry_with_outstanding",
-                    filters: {
-                        account: row.account,
-                        party: row.party
-                    }
+                // ---- STANDARD ERPNext LOGIC ----
+                let out = {
+                    filters: [[jvd.reference_type, "docstatus", "=", 1]]
                 };
+
+                if (["Sales Invoice", "Purchase Invoice"].includes(jvd.reference_type)) {
+                    out.filters.push([jvd.reference_type, "outstanding_amount", "!=", 0]);
+
+                    if (jvd.cost_center) {
+                        out.filters.push([
+                            jvd.reference_type,
+                            "cost_center",
+                            "in",
+                            ["", jvd.cost_center]
+                        ]);
+                    }
+
+                    frappe.model.validate_missing(jvd, "account");
+                    let party_account_field =
+                        jvd.reference_type === "Sales Invoice" ? "debit_to" : "credit_to";
+
+                    out.filters.push([
+                        jvd.reference_type,
+                        party_account_field,
+                        "=",
+                        jvd.account
+                    ]);
+                }
+
+                if (["Sales Order", "Purchase Order"].includes(jvd.reference_type)) {
+                    frappe.model.validate_missing(jvd, "party_type");
+                    frappe.model.validate_missing(jvd, "party");
+                    out.filters.push([jvd.reference_type, "per_billed", "<", 100]);
+                }
+
+                if (jvd.party_type && jvd.party) {
+                    let party_field = "";
+
+                    if (jvd.reference_type.startsWith("Sales")) {
+                        party_field = "customer";
+                    } else if (jvd.reference_type.startsWith("Purchase")) {
+                        party_field = "supplier";
+                    }
+
+                    if (party_field) {
+                        out.filters.push([jvd.reference_type, party_field, "=", jvd.party]);
+                    }
+                }
+
+                return out;
             };
     },
 
