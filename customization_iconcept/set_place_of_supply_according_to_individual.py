@@ -25,3 +25,5 @@ def set_place_of_supply(doc, method):
         # Set place_of_supply in Sales Invoice
         if custom_place_of_supply:
             doc.place_of_supply = custom_place_of_supply
+
+
