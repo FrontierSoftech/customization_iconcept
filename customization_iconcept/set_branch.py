@@ -6,5 +6,3 @@ def before_save(doc, method):
         branch_ = frappe.db.get_value("POS Profile", doc.pos_profile, "branch")
         if branch_:
             doc.branch = branch_
-    
-    
