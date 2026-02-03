@@ -64,7 +64,12 @@ doctype_js = {
         "public/js/custom_editable_party_name.js"
     ], 
     "Payment Entry": "public/js/reference_no_payment.js",
-    "Journal Entry": "public/js/journal_entry.js"
+    "Journal Entry": "public/js/journal_entry.js",
+	"Purchase Invoice":[ 
+        # "public/js/internal_purchase.js",
+        "public/js/validation_on_purchase.js"
+    ]
+
 }
 
 

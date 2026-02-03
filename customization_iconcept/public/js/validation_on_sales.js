@@ -91,7 +91,16 @@ frappe.ui.form.on('Sales Invoice', {
                     'custom_is_this_tax_included_in_basic_rate',
                     internal ? 0 : 1
                 );
-            });
+                frm.toggle_reqd("sales_team", !internal);  
+
+            }); 
+        }
+    },
+    custom_credit_note: function (frm) {
+        if (frm.doc.custom_credit_note) {
+            frm.set_value('is_return', 1);
+        }else {
+            frm.set_value('is_return', 0);
         }
     },
     custom_sales_ledger: function (frm) {
