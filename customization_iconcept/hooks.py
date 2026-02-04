@@ -25,7 +25,10 @@ doc_events = {
         "before_insert": "customization_iconcept.naming_series.naming_series_delivery_note"
     },
     "Purchase Invoice": {
-        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_invoice",
+        "before_insert": [
+            "customization_iconcept.naming_series.naming_series_purchase_invoice",
+            "customization_iconcept.overrides.purchase_receipt_order_table.supplier_name"
+        ],
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields"
     },
     "Purchase Order": {
@@ -66,7 +69,7 @@ doctype_js = {
     "Payment Entry": "public/js/reference_no_payment.js",
     "Journal Entry": "public/js/journal_entry.js",
 	"Purchase Invoice":[ 
-        "public/js/internal_purchase.js",
+        "public/js/internal_purchase.js", 
         "public/js/validation_on_purchase.js"
     ]
 
