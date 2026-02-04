@@ -15,12 +15,18 @@ def before_insert(doc, method):
         # doc.custom_vch_abbr = "CN"
         doc.naming_series = f"{start_year}CN-.{doc.custom_branch_code}./.#"
         doc.name = f"{start_year}CN-.{doc.custom_branch_code}./.#"
+
+    elif doc.custom_is_stock_transfer:
+        # doc.custom_vch_abbr = "SR"
+        doc.naming_series = f"STRF-.{doc.custom_branch_code}.-.#"
+        doc.name = f"STRF-.{doc.custom_branch_code}.-.#"
+        # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-{start_year}/.#")
     elif doc.is_return:
         # doc.custom_vch_abbr = "SR"
         doc.naming_series = f"{start_year}SRN-.{doc.custom_branch_code}./.#"
         doc.name = f"{start_year}SRN-.{doc.custom_branch_code}./.#"
         # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SR-{start_year}/.#")
-        # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./CN-{start_year}/.#")
+       
     elif internal_customer:
         # doc.custom_vch_abbr = "IC"
         doc.naming_series = f".{company_abbr}{doc.custom_branch_code}.-SO-{start_year}/.#"
