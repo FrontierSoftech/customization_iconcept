@@ -19,7 +19,7 @@ def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None
 
 	def set_missing_values(source, target):
 		target.is_internal_supplier = 1
-		target.run_method("set_missing_values")
+		# target.run_method("set_missing_values")
 		target.run_method("calculate_taxes_and_totals")
 
 	def update_details(source, target, source_parent):
