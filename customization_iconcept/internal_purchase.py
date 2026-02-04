@@ -1,245 +1,98 @@
-# import frappe
-
-# @frappe.whitelist()
-# def get_internal_transfer_sales_invoices(company):
-# 	return frappe.db.sql("""
-# 		SELECT
-# 			si.name,
-# 			si.customer,
-# 			si.grand_total
-# 		FROM
-# 			`tabSales Invoice` si
-# 		WHERE
-# 			si.docstatus = 1
-# 			AND si.is_internal_transfer = 1
-# 			AND si.company = %s
-# 			AND NOT EXISTS (
-# 				SELECT 1
-# 				FROM `tabPurchase Invoice` pi
-# 				WHERE pi.internal_transfer_sales_invoice = si.name
-# 				AND pi.docstatus < 2
-# 			)
-# 		ORDER BY si.posting_date DESC
-# 	""", company, as_dict=True)
-
-# import frappe
-# from frappe.model.mapper import get_mapped_doc
-
-
-# @frappe.whitelist()
-# def get_internal_transfer_sales_invoices(company):
-# 	return frappe.db.sql("""
-# 		SELECT
-# 			si.name
-# 		FROM
-# 			`tabSales Invoice` si
-# 		WHERE
-# 			si.docstatus = 1
-# 			AND si.company = %s
-# 			AND si.name NOT IN (
-# 				SELECT inter_company_invoice_reference
-# 				FROM `tabPurchase Invoice`
-# 				WHERE docstatus < 2
-# 				AND inter_company_invoice_reference IS NOT NULL
-# 			)
-# 		ORDER BY si.posting_date DESC
-# 	""", company, as_dict=True)
-
-
-# @frappe.whitelist()
-# def make_purchase_invoice_from_sales_invoice(sales_invoice):
-
-# 	def postprocess(source, target):
-# 		# Link Sales Invoice
-# 		target.inter_company_invoice_reference = source.name
-
-# 		# Set Supplier using inter-company rule (SAFE)
-# 		supplier = frappe.get_value(
-# 			"Supplier",
-# 			{"represents_company": source.company},
-# 			"name"
-# 		)
-# 		if supplier:
-# 			target.supplier = supplier
-
-# 	return get_mapped_doc(
-# 		"Sales Invoice",
-# 		sales_invoice,
-# 		{
-# 			"Sales Invoice": {
-# 				"doctype": "Purchase Invoice",
-# 				"field_map": {
-# 					"name": "inter_company_invoice_reference",
-# 					"posting_date": "posting_date",
-# 					"due_date": "due_date"
-# 				}
-# 			},
-# 			"Sales Invoice Item": {
-# 				"doctype": "Purchase Invoice Item",
-# 				"field_map": {
-# 					"item_code": "item_code",
-# 					"qty": "qty",
-# 					"rate": "rate",
-# 					"amount": "amount"
-# 				}
-# 			}
-# 		},
-# 		target_doc=None,
-# 		postprocess=postprocess
-# 	)
-
-# import frappe
-# from frappe.model.mapper import get_mapped_doc
-
-# @frappe.whitelist()
-# def get_internal_transfer_sales_invoices(company):
-#     """
-#     Fetch submitted Sales Invoices that do not yet have
-#     a linked Purchase Invoice (Inter-Company).
-#     """
-#     return frappe.db.sql("""
-#         SELECT
-#             si.name
-#         FROM
-#             `tabSales Invoice` si
-#         WHERE
-#             si.docstatus = 1
-#             AND si.company = %s
-#             AND si.name NOT IN (
-#                 SELECT inter_company_invoice_reference
-#                 FROM `tabPurchase Invoice`
-#                 WHERE docstatus < 2
-#                 AND inter_company_invoice_reference IS NOT NULL
-#             )
-#         ORDER BY si.posting_date DESC
-#     """, company, as_dict=True)
-
-
-# @frappe.whitelist()
-# def make_purchase_invoice_from_sales_invoice(sales_invoice):
-#     """
-#     Create a new Purchase Invoice from a Sales Invoice
-#     for internal transfer purposes.
-#     """
-
-#     def postprocess(source, target):
-#         # Link Sales Invoice
-#         target.inter_company_invoice_reference = source.name
-
-#         # Set Supplier safely using represents_company
-#         supplier = frappe.get_value(
-#             "Supplier",
-#             {"represents_company": source.company},
-#             "name"
-#         )
-#         if supplier:
-#             target.supplier = supplier
-
-#         # Remove any taxes to avoid template mismatch errors
-#         target.taxes = []
-#         target.taxes_and_charges = None
-
-#     return get_mapped_doc(
-#         "Sales Invoice",
-#         sales_invoice,
-#         {
-#             "Sales Invoice": {
-#                 "doctype": "Purchase Invoice",
-#                 "field_map": {
-#                     "name": "inter_company_invoice_reference",
-#                     "posting_date": "posting_date",
-#                     "due_date": "due_date"
-#                 }
-#             },
-#             "Sales Invoice Item": {
-#                 "doctype": "Purchase Invoice Item",
-#                 "field_map": {
-#                     "item_code": "item_code",
-#                     "qty": "qty",
-#                     "rate": "rate",
-#                     "amount": "amount"
-#                 }
-#             }
-#         },
-#         target_doc=None,
-#         postprocess=postprocess
-#     )
 
 import frappe
 from frappe.model.mapper import get_mapped_doc
+from frappe.utils import flt
 
 @frappe.whitelist()
-def get_internal_transfer_sales_invoices(company):
-    """
-    Fetch submitted Sales Invoices that do not yet have
-    a linked Purchase Invoice (Inter-Company).
-    """
-    return frappe.db.sql("""
-        SELECT
-            si.name
-        FROM
-            `tabSales Invoice` si
-        WHERE
-            si.docstatus = 1
-            AND si.company = %s
-            AND si.name NOT IN (
-                SELECT inter_company_invoice_reference
-                FROM `tabPurchase Invoice`
-                WHERE docstatus < 2
-                AND inter_company_invoice_reference IS NOT NULL
-            )
-        ORDER BY si.posting_date DESC
-    """, company, as_dict=True)
+def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None):
+	source_doc = frappe.get_doc("Sales Invoice", source_name)
+
+	def validate_internal_transfer(source_doc):
+		if source_doc.docstatus != 1:
+			frappe.throw(_("Only submitted Sales Invoices can be used"))
+		if source_doc.is_return:
+			frappe.throw(_("Return Sales Invoices are not allowed"))
+		if not source_doc.is_internal_customer:
+			frappe.throw(_("Sales Invoice is not marked as Internal Customer"))
+
+	validate_internal_transfer(source_doc)
+
+	def set_missing_values(source, target):
+		target.is_internal_supplier = 1
+		target.run_method("set_missing_values")
+		target.run_method("calculate_taxes_and_totals")
+
+	def update_details(source, target, source_parent):
+		target.company = source.company
+		target.posting_date = source.posting_date
+		target.supplier = source.customer
+		target.currency = source.currency
+		target.ignore_pricing_rule = 1
+		target.inter_company_invoice_reference = source.name
+
+	def update_item(source, target, source_parent):
+		target.qty = flt(source.qty)
+		target.rate = source.rate
+		target.amount = flt(source.qty) * flt(source.rate)
+
+		# Preserve warehouse for stock entry alignment
+		if source.warehouse:
+			target.warehouse = source.warehouse
+
+		# Link back to Sales Invoice
+		target.sales_invoice = source.parent
+		target.sales_invoice_item = source.name
+
+	item_field_map = {
+		"doctype": "Purchase Invoice Item",
+		"field_map": {
+			"name": "sales_invoice_item",
+			"item_code": "item_code",
+			"item_name": "item_name",
+			"description": "description",
+			"uom": "uom",
+			"conversion_factor": "conversion_factor",
+			"income_account": "expense_account",
+		},
+		"postprocess": update_item,
+		"condition": lambda doc: doc.qty > 0,
+	}
+
+	doclist = get_mapped_doc(
+		"Sales Invoice",
+		source_name,
+		{
+			"Sales Invoice": {
+				"doctype": "Purchase Invoice",
+				"postprocess": update_details,
+				"field_no_map": [
+					"taxes_and_charges",
+					"set_warehouse",
+				],
+			},
+			"Sales Invoice Item": item_field_map,
+		},
+		target_doc,
+		set_missing_values,
+	)
+
+	return doclist
 
 
 @frappe.whitelist()
-def make_purchase_invoice_from_sales_invoice(sales_invoice):
-    """
-    Create a new Purchase Invoice from a Sales Invoice
-    for internal transfer purposes.
-    """
-
-    def postprocess(source, target):
-        # Link Sales Invoice
-        target.inter_company_invoice_reference = source.name
-
-        # Set Supplier safely
-        supplier = frappe.get_value(
-            "Supplier",
-            {"represents_company": source.company},
-            "name"
-        )
-        if supplier:
-            target.supplier = supplier
-
-        # Remove any Taxes to avoid template mismatch errors
-        target.taxes = []
-        target.taxes_and_charges = None
-
-    return get_mapped_doc(
-        "Sales Invoice",
-        sales_invoice,
-        {
-            "Sales Invoice": {
-                "doctype": "Purchase Invoice",
-                "field_map": {
-                    "name": "inter_company_invoice_reference",
-                    "posting_date": "posting_date",
-                    "due_date": "due_date"
-                }
-            },
-            "Sales Invoice Item": {
-                "doctype": "Purchase Invoice Item",
-                "field_map": {
-                    "item_code": "item_code",
-                    "qty": "qty",
-                    "rate": "rate",
-                    "amount": "amount"
-                },
-                "add_if_empty": True  # Ensures at least one row is created
-            }
-        },
-        target_doc=None,
-        postprocess=postprocess
-    )
-
+def get_sales_invoices_already_transferred(company):
+	"""
+	Return Sales Invoices that already have an Internal Transfer Purchase Invoice
+	"""
+	return frappe.db.sql_list(
+		"""
+		SELECT DISTINCT inter_company_invoice_reference
+		FROM `tabPurchase Invoice`
+		WHERE
+			docstatus = 1
+			AND is_internal_supplier = 1
+			AND inter_company_invoice_reference IS NOT NULL
+			AND company = %s
+		""",
+		(company,),
+	)
