@@ -84,7 +84,20 @@ from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 
 @frappe.whitelist()
 def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None):
-	return erpnext_make_ic_pi(source_name, target_doc)
+	# return erpnext_make_ic_pi(source_name, target_doc)
+	doc = erpnext_make_ic_pi(source_name, target_doc)
+
+	# Fetch source Sales Invoice
+	si = frappe.get_doc("Sales Invoice", source_name)
+
+	# ---- Header warehouse mapping ----
+	# Sales Invoice -> Purchase Invoice
+	doc.set_warehouse = si.set_warehouse
+	doc.set_from_warehouse = si.set_target_warehouse
+
+	# ---- Force branch to be NULL ----
+	doc.branch = None
+	return doc
 
 @frappe.whitelist()
 def get_sales_invoices_already_transferred(company):
