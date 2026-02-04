@@ -25,10 +25,7 @@ doc_events = {
         "before_insert": "customization_iconcept.naming_series.naming_series_delivery_note"
     },
     "Purchase Invoice": {
-        "before_insert": [
-            "customization_iconcept.naming_series.naming_series_purchase_invoice",
-            "customization_iconcept.overrides.purchase_receipt_order_table.supplier_name"
-        ],
+        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_invoice",
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields"
     },
     "Purchase Order": {
