@@ -20,6 +20,7 @@ frappe.ui.form.on("Purchase Invoice", {
 					source_doctype: "Sales Invoice",
 					target: frm,
 					setters: {
+							custom_internal_branch: frm.doc.branch,
 							customer: frm.doc.supplier,
 							posting_date: undefined,
 							company: frm.doc.company,

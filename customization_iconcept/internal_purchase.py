@@ -92,11 +92,11 @@ def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None
 
 	# ---- Header warehouse mapping ----
 	# Sales Invoice -> Purchase Invoice
-	doc.set_warehouse = si.set_warehouse
+	# doc.set_warehouse = si.set_warehouse
 	doc.set_from_warehouse = si.set_target_warehouse
 
 	# ---- Force branch to be NULL ----
-	doc.branch = None
+	doc.branch = si.custom_internal_branch
 	return doc
 
 @frappe.whitelist()

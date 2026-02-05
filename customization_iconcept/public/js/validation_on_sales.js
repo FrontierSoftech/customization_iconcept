@@ -91,15 +91,31 @@ frappe.ui.form.on('Sales Invoice', {
                     'custom_is_this_tax_included_in_basic_rate',
                     internal ? 0 : 1
                 );
-                frm.toggle_reqd("sales_team", !internal);  
+                frm.toggle_reqd("sales_team", !internal);
 
-            }); 
+            });
+        }
+        if (frm.doc.is_internal_customer) {
+            frm.set_value(
+                'set_target_warehouse',
+                'Goods In Transit - ' + frm.doc.custom_company_abbr
+            );
+        }
+    },
+    update_stock: function (frm) {
+        if (frm.doc.is_internal_customer) {
+            setInterval(() => {
+                frm.set_value(
+                    'set_target_warehouse',
+                    'Goods In Transit - ' + frm.doc.custom_company_abbr
+                );
+            }, 1000);
         }
     },
     custom_credit_note: function (frm) {
         if (frm.doc.custom_credit_note) {
             frm.set_value('is_return', 1);
-        }else {
+        } else {
             frm.set_value('is_return', 0);
         }
     },
