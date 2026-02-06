@@ -78,6 +78,8 @@ def naming_series_purchase_invoice(doc, method):
         # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./PI-{start_year}/.#")
 
 def naming_series_purchase_order(doc, method):
+    if doc.name:
+        return
     company_abbr = doc.get("custom_company_abbr")[:2]
     doc.naming_series = f".{company_abbr}.-.{doc.custom_branch_code}./PO-{start_year}/.#"
     doc.name = f".{company_abbr}.-.{doc.custom_branch_code}./PO-{start_year}/.#"
