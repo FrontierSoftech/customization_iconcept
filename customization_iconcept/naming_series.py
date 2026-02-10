@@ -2,7 +2,7 @@ import frappe
 from frappe.model.naming import make_autoname
 from frappe.utils import getdate
 
-fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", getdate()], "year_end_date": [">=", getdate()]}, "name")
+fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", getdate()], "year_end_date": [">=", getdate()],"disabled": 0}, "name")
 if "-" in fy:
     start_year = fy.split("-")[0]
 else:
