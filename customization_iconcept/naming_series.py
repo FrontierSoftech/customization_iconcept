@@ -1,8 +1,13 @@
 import frappe
 from frappe.model.naming import make_autoname
 from frappe.utils import getdate
+from frappe import _
 
 fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", getdate()], "year_end_date": [">=", getdate()],"disabled": 0}, "name")
+
+if not fy:
+    frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
 if "-" in fy:
     start_year = fy.split("-")[0]
 else:
