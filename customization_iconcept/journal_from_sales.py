@@ -112,46 +112,45 @@ def create_finance_lender_jv(doc, method):
 
             je1.insert()
             je1.submit()
-    
-    je2 = frappe.new_doc("Journal Entry")
-    je2.voucher_type = "Journal Entry"
-    je2.posting_date = doc.posting_date
-    je2.company = doc.company
-    je2.custom_reference_doctype = doc.doctype
-    je2.custom_reference_name = doc.name
-    je2.custom_branch = doc.branch
-    je2.custom_cost_center = doc.cost_center
+            
+    if doc.custom_discount_ledger and doc.additional_discount_account:
+        je2 = frappe.new_doc("Journal Entry")
+        je2.voucher_type = "Journal Entry"
+        je2.posting_date = doc.posting_date
+        je2.company = doc.company
+        je2.custom_reference_doctype = doc.doctype
+        je2.custom_reference_name = doc.name
+        je2.custom_branch = doc.branch
+        je2.custom_cost_center = doc.cost_center
 
-    total_discount = 0
+        total_discount = 0
 
-    # Debit entries
-    for row in doc.custom_discount_ledger:
-        if not row.discount_ledger or not row.discount:
-            continue
+        # Debit entries
+        for row in doc.custom_discount_ledger:
+            if not row.discount_ledger or not row.discount:
+                continue
 
-        total_discount += row.discount
+            total_discount += row.discount
 
+            je2.append("accounts", {
+                "account": row.discount_ledger,
+                "debit_in_account_currency": row.discount,
+                "credit_in_account_currency": 0,
+                "branch": doc.branch,
+                "cost_center": doc.cost_center
+            })
+
+        # Credit entry (Receivable / Discount account)
         je2.append("accounts", {
-            "account": row.discount_ledger,
-            "debit_in_account_currency": row.discount,
-            "credit_in_account_currency": 0,
+            "account": doc.additional_discount_account,
+            "debit_in_account_currency": 0,
+            "credit_in_account_currency": total_discount,
             "branch": doc.branch,
-            "cost_center": doc.cost_center
+            "cost_center": doc.cost_center,            # ⭐ MUST match invoice customer
+            # "reference_type": doc.doctype,
+            # "reference_name": doc.name,
+            # "reference_due_date": doc.posting_date
         })
 
-    # Credit entry (Receivable / Discount account)
-    je2.append("accounts", {
-        "account": doc.additional_discount_account,
-        "debit_in_account_currency": 0,
-        "credit_in_account_currency": total_discount,
-        "branch": doc.branch,
-        "cost_center": doc.cost_center,
-        "party_type": "Customer",            # ⭐ REQUIRED if Receivable
-        "party": doc.customer,               # ⭐ MUST match invoice customer
-        "reference_type": doc.doctype,
-        "reference_name": doc.name,
-        "reference_due_date": doc.posting_date
-    })
-
-    je2.insert()
-    je2.submit()
+        je2.insert()
+        je2.submit()
