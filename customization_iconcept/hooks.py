@@ -64,13 +64,15 @@ doctype_js = {
     "Purchase Receipt": "public/js/serial_entry_compare_with_purchase_receipt.js",
     "Sales Invoice": [
         "public/js/validation_on_sales.js",
-        "public/js/custom_editable_party_name.js"
+        "public/js/custom_editable_party_name.js",
+        "public/js/discount_table.js"
     ], 
     "Payment Entry": "public/js/reference_no_payment.js",
     "Journal Entry": "public/js/journal_entry.js",
 	"Purchase Invoice":[ 
         "public/js/internal_purchase.js", 
-        "public/js/validation_on_purchase.js"
+        "public/js/validation_on_purchase.js",
+        "public/js/credit_days_set_due_date.js"
     ]
 
 }
