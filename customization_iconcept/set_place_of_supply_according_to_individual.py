@@ -32,21 +32,28 @@ def set_place_of_supply(doc, method):
 # def set_place_of_supply(doc, method):
 #     """
 #     Set place_of_supply on Sales Invoice based on:
-#     1. billing_address_gstin
+#     1. GSTIN from linked Address
 #     2. fallback to Branch custom_place_of_supply
 #     """
 
 #     place_of_supply = None
 #     gstin = None
 
-#     if doc.get("billing_address_gstin"):
-#         gstin = doc.billing_address_gstin.strip()
+#     # 1️⃣ Get GSTIN from linked Address
+#     if doc.get("customer_address"):
+#         gstin = frappe.db.get_value(
+#             "Address",
+#             doc.customer_address,
+#             "gstin"
+#         )
 
+#         if gstin:
+#             gstin = gstin.strip()
 
+#     # 2️⃣ Extract state code from GSTIN
 #     if gstin and len(gstin) >= 2:
 #         state_code = gstin[:2]
 
-#         # Get State name from State doctype
 #         state_name = frappe.db.get_value(
 #             "State",
 #             {"gst_state_number": state_code},
@@ -56,26 +63,18 @@ def set_place_of_supply(doc, method):
 #         if state_name:
 #             place_of_supply = state_name.strip()
 
-
+#     # 3️⃣ Fallback to Branch custom field
 #     if not place_of_supply and doc.get("branch"):
 #         branch_supply = frappe.db.get_value(
 #             "Branch",
 #             doc.branch,
 #             "custom_place_of_supply"
 #         )
+
 #         if branch_supply:
 #             place_of_supply = branch_supply.strip()
 
-
-#     if place_of_supply:
-#         doc.place_of_supply = place_of_supply
-#     else:
-#         # Optional: clear field if no value found
-#         doc.place_of_supply = ""
-
-
-
-
-
+#     # 4️⃣ Set value
+#     doc.place_of_supply = place_of_supply or ""
 
 
