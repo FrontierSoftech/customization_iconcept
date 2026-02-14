@@ -17,16 +17,18 @@ def cancel_linked_journal_entery(doc, method):
                         f"Sales Invoice <b>{row.reference_name}</b> is not cancelled. "
                         f"Please cancel this Sales Invoice first before cancelling the Journal Entry."
                     )
-    if frappe.db.exists("Sales Invoice", doc.custom_reference_name):
-                si_status = frappe.db.get_value(
-                    "Sales Invoice",
-                    doc.custom_reference_name,
-                    "docstatus"
-                )
-    
-                # docstatus: 0 = Draft, 1 = Submitted, 2 = Cancelled
-                if si_status != 2:
-                    frappe.throw(
-                        f"Sales Invoice <b>{doc.custom_reference_name}</b> is not cancelled. "
-                        f"Please cancel this Sales Invoice first before cancelling the Journal Entry."
+                    
+    if doc.custom_reference_name:
+        if frappe.db.exists("Sales Invoice", doc.custom_reference_name):
+                    si_status = frappe.db.get_value(
+                        "Sales Invoice",
+                        doc.custom_reference_name,
+                        "docstatus"
                     )
+
+                    # docstatus: 0 = Draft, 1 = Submitted, 2 = Cancelled
+                    if si_status != 2:
+                        frappe.throw(
+                            f"Sales Invoice <b>{doc.custom_reference_name}</b> is not cancelled. "
+                            f"Please cancel this Sales Invoice first before cancelling the Journal Entry."
+                        )

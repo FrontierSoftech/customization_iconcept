@@ -87,14 +87,14 @@ def naming_series_purchase_order(doc, method):
         return
     company_abbr = doc.get("custom_company_abbr")[:2]
     doc.naming_series = f"{company_abbr}-{doc.custom_branch_code}/PO-{start_year}/.#"
-    doc.name = f"{company_abbr}-{doc.custom_branch_code}/PO-{start_year}/.#"
-    # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./PO-{start_year}/.#")
+    # doc.name = f"{company_abbr}-{doc.custom_branch_code}/PO-{start_year}/.#"
+    doc.name = make_autoname(f"{company_abbr}-{doc.custom_branch_code}/PO-{start_year}/.#")
 
 def naming_series_purchase_receipt(doc, method):
     company_abbr = doc.get("custom_company_abbr")[:2]
     doc.naming_series = f"{company_abbr}-{doc.custom_branch_code}/PR-{start_year}/.#"
-    doc.name = f"{company_abbr}-{doc.custom_branch_code}/PR-{start_year}/.#"
-    # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./PR-{start_year}/.#")
+    # doc.name = f"{company_abbr}-{doc.custom_branch_code}/PR-{start_year}/.#"
+    doc.name = make_autoname(f"{company_abbr}-{doc.custom_branch_code}/PR-{start_year}/.#")
 
 def naming_series_payment_entry(doc, method):
     company_abbr = doc.get("custom_company_abbr")[:2]
