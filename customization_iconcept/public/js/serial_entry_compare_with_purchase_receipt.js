@@ -37,5 +37,8 @@ frappe.ui.form.on('Purchase Receipt', {
                 });
             }
         });
-    }
+    },
+    __newname(frm) {
+		frm.set_value('bill_no', frm.doc.__newname);
+	}
 });
