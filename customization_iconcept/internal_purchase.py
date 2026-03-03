@@ -115,4 +115,7 @@ def get_sales_invoices_already_transferred(company):
 			AND company = %s
 		""",
 		(company,),
+
 	)
+
+

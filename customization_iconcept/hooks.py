@@ -33,7 +33,8 @@ doc_events = {
     "Purchase Invoice": {
         "before_insert": [
             "customization_iconcept.naming_series.naming_series_purchase_invoice",
-            "customization_iconcept.overrides.purchase_receipt_order_table.supplier_name"
+            "customization_iconcept.overrides.purchase_receipt_order_table.supplier_name",
+            "customization_iconcept.name_update.set_supplier_title"
         ],
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields",
         "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"

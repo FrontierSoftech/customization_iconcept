@@ -37,5 +37,6 @@ def apply_items_filters(self, query, item_table) -> str:
     # ---- Brand ----
     if brand := self.filters.get("brand"):
         query = query.where(item_table.brand == brand)
+    
 
     return query
