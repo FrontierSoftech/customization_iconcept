@@ -33,8 +33,7 @@ doc_events = {
     "Purchase Invoice": {
         "before_insert": [
             "customization_iconcept.naming_series.naming_series_purchase_invoice",
-            "customization_iconcept.overrides.purchase_receipt_order_table.supplier_name",
-            "customization_iconcept.name_update.set_supplier_title"
+            "customization_iconcept.overrides.purchase_receipt_order_table.supplier_name"
         ],
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields",
         "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"
@@ -71,19 +70,24 @@ after_migrate = "customization_iconcept.install.after_install"
 # }
 
 doctype_js = {
-    "Purchase Order": "public/js/required_by.js",
-    "Purchase Receipt": "public/js/serial_entry_compare_with_purchase_receipt.js",
+    "Purchase Order": [
+        "public/js/required_by.js",
+    ],  
+    "Purchase Receipt": [
+        "public/js/serial_entry_compare_with_purchase_receipt.js",
+    ],
     "Sales Invoice": [
         "public/js/validation_on_sales.js",
         "public/js/custom_editable_party_name.js",
-        "public/js/discount_table.js"
+        "public/js/discount_table.js",
+        "public/js/stock_transfer.js"
     ], 
     "Payment Entry": "public/js/reference_no_payment.js",
     "Journal Entry": "public/js/journal_entry.js",
 	"Purchase Invoice":[ 
         "public/js/internal_purchase.js", 
         "public/js/validation_on_purchase.js",
-        "public/js/credit_days_set_due_date.js"
+        "public/js/credit_days_set_due_date.js",
     ]
 
 }
