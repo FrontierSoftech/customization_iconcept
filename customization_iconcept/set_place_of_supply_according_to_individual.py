@@ -5,26 +5,72 @@ def set_place_of_supply(doc, method):
     if not doc.customer or not doc.branch:
         return
 
-    # Get customer type
-    customer_type = frappe.db.get_value(
+    # Get customer details
+    customer = frappe.db.get_value(
         "Customer",
         doc.customer,
-        "customer_type"
+        ["customer_type", "gstin"],
+        as_dict=True
     )
 
-    # Check if customer is Individual
-    if customer_type == "Individual":
+    if not customer:
+        return
 
-        # Get custom_place_of_supply from Branch
+    # Check if customer is Individual
+    if customer.customer_type == "Individual":
+
+        # If GSTIN exists, derive state from GSTIN
+        if customer.gstin:
+            state_code = customer.gstin[:2]
+
+            # Find state using GST state code
+            state = frappe.db.get_value(
+                "Address",
+                {"gst_state_number": state_code},
+                "gst_state"
+            )
+
+            if state:
+                doc.place_of_supply = state
+                return
+
+        # If no GSTIN, fallback to Branch custom_place_of_supply
         custom_place_of_supply = frappe.db.get_value(
             "Branch",
             doc.branch,
             "custom_place_of_supply"
         )
 
-        # Set place_of_supply in Sales Invoice
         if custom_place_of_supply:
             doc.place_of_supply = custom_place_of_supply
+
+# import frappe
+
+# def set_place_of_supply(doc, method):
+#     # Ensure customer and branch are set
+#     if not doc.customer or not doc.branch:
+#         return
+
+#     # Get customer type
+#     customer_type = frappe.db.get_value(
+#         "Customer",
+#         doc.customer,
+#         "customer_type"
+#     )
+
+#     # Check if customer is Individual
+#     if customer_type == "Individual":
+
+#         # Get custom_place_of_supply from Branch
+#         custom_place_of_supply = frappe.db.get_value(
+#             "Branch",
+#             doc.branch,
+#             "custom_place_of_supply"
+#         )
+
+#         # Set place_of_supply in Sales Invoice
+#         if custom_place_of_supply:
+#             doc.place_of_supply = custom_place_of_supply
 
 
 # import frappe
