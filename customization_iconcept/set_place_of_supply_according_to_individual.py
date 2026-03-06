@@ -1,11 +1,10 @@
 import frappe
 
 def set_place_of_supply(doc, method):
-    # Ensure customer and branch are set
     if not doc.customer or not doc.branch:
         return
 
-    # Get customer details
+    # Get customer type and GSTIN
     customer = frappe.db.get_value(
         "Customer",
         doc.customer,
@@ -16,25 +15,24 @@ def set_place_of_supply(doc, method):
     if not customer:
         return
 
-    # Check if customer is Individual
     if customer.customer_type == "Individual":
 
-        # If GSTIN exists, derive state from GSTIN
+        # If GSTIN exists
         if customer.gstin:
             state_code = customer.gstin[:2]
 
-            # Find state using GST state code
-            state = frappe.db.get_value(
-                "Address",
-                {"gst_state_number": state_code},
-                "gst_state"
+            # Get state name from GST State table
+            state_name = frappe.db.get_value(
+                "GST State",
+                {"code": state_code},
+                "state"
             )
 
-            if state:
-                doc.place_of_supply = state
+            if state_name:
+                doc.place_of_supply = f"{state_code}-{state_name}"
                 return
 
-        # If no GSTIN, fallback to Branch custom_place_of_supply
+        # Fallback to Branch custom field
         custom_place_of_supply = frappe.db.get_value(
             "Branch",
             doc.branch,
@@ -43,6 +41,97 @@ def set_place_of_supply(doc, method):
 
         if custom_place_of_supply:
             doc.place_of_supply = custom_place_of_supply
+
+# import frappe
+
+# def set_place_of_supply(doc, method):
+#     if not doc.customer or not doc.branch:
+#         return
+
+#     # Get customer type and GSTIN
+#     customer = frappe.db.get_value(
+#         "Customer",
+#         doc.customer,
+#         ["customer_type", "gstin"],
+#         as_dict=True
+#     )
+
+#     if not customer:
+#         return
+
+#     if customer.customer_type == "Individual":
+
+#         # If GSTIN exists
+#         if customer.gstin:
+#             state_code = customer.gstin[:2]
+
+#             # Get state name from GST State table
+#             state_name = frappe.db.get_value(
+#                 "GST State",
+#                 {"code": state_code},
+#                 "state"
+#             )
+
+#             if state_name:
+#                 doc.place_of_supply = f"{state_code}-{state_name}"
+#                 return
+
+#         # Fallback to Branch custom field
+#         custom_place_of_supply = frappe.db.get_value(
+#             "Branch",
+#             doc.branch,
+#             "custom_place_of_supply"
+#         )
+
+#         if custom_place_of_supply:
+#             doc.place_of_supply = custom_place_of_supply
+
+
+# import frappe
+
+# def set_place_of_supply(doc, method):
+#     # Ensure customer and branch are set
+#     if not doc.customer or not doc.branch:
+#         return
+
+#     # Get customer details
+#     customer = frappe.db.get_value(
+#         "Customer",
+#         doc.customer,
+#         ["customer_type", "gstin"],
+#         as_dict=True
+#     )
+
+#     if not customer:
+#         return
+
+#     # Check if customer is Individual
+#     if customer.customer_type == "Individual":
+
+#         # If GSTIN exists, derive state from GSTIN
+#         if customer.gstin:
+#             state_code = customer.gstin[:2]
+
+#             # Find state using GST state code
+#             state = frappe.db.get_value(
+#                 "Address",
+#                 {"gst_state_number": state_code},
+#                 "gst_state"
+#             )
+
+#             if state:
+#                 doc.place_of_supply = state
+#                 return
+
+#         # If no GSTIN, fallback to Branch custom_place_of_supply
+#         custom_place_of_supply = frappe.db.get_value(
+#             "Branch",
+#             doc.branch,
+#             "custom_place_of_supply"
+#         )
+
+#         if custom_place_of_supply:
+#             doc.place_of_supply = custom_place_of_supply
 
 # import frappe
 
