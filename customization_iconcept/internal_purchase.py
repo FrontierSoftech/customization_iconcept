@@ -6,81 +6,7 @@ from frappe.utils import flt
 from erpnext.accounts.doctype.sales_invoice.sales_invoice import (
 	make_inter_company_purchase_invoice as erpnext_make_ic_pi
 )
-
-# @frappe.whitelist()
-# def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None):
-# 	source_doc = frappe.get_doc("Sales Invoice", source_name)
-
-# 	def validate_internal_transfer(source_doc):
-# 		if source_doc.docstatus != 1:
-# 			frappe.throw(_("Only submitted Sales Invoices can be used"))
-# 		if source_doc.is_return:
-# 			frappe.throw(_("Return Sales Invoices are not allowed"))
-# 		if not source_doc.is_internal_customer:
-# 			frappe.throw(_("Sales Invoice is not marked as Internal Customer"))
-
-# 	validate_internal_transfer(source_doc)
-
-# 	def set_missing_values(source, target):
-# 		target.is_internal_supplier = 1
-# 		# target.run_method("set_missing_values")
-# 		target.run_method("calculate_taxes_and_totals")
-
-# 	def update_details(source, target, source_parent):
-# 		target.company = source.company
-# 		target.posting_date = source.posting_date
-# 		target.supplier = source.customer
-# 		target.currency = source.currency
-# 		target.ignore_pricing_rule = 1
-# 		target.inter_company_invoice_reference = source.name
-
-# 	def update_item(source, target, source_parent):
-# 		target.qty = flt(source.qty)
-# 		target.rate = source.rate
-# 		target.amount = flt(source.qty) * flt(source.rate)
-
-# 		# Preserve warehouse for stock entry alignment
-# 		if source.warehouse:
-# 			target.warehouse = source.warehouse
-
-# 		# Link back to Sales Invoice
-# 		target.sales_invoice = source.parent
-# 		target.sales_invoice_item = source.name
-
-# 	item_field_map = {
-# 		"doctype": "Purchase Invoice Item",
-# 		"field_map": {
-# 			"name": "sales_invoice_item",
-# 			"item_code": "item_code",
-# 			"item_name": "item_name",
-# 			"description": "description",
-# 			"uom": "uom",
-# 			"conversion_factor": "conversion_factor",
-# 			"income_account": "expense_account",
-# 		},
-# 		"postprocess": update_item,
-# 		"condition": lambda doc: doc.qty > 0,
-# 	}
-
-# 	doclist = get_mapped_doc(
-# 		"Sales Invoice",
-# 		source_name,
-# 		{
-# 			"Sales Invoice": {
-# 				"doctype": "Purchase Invoice",
-# 				"postprocess": update_details,
-# 				"field_no_map": [
-# 					"taxes_and_charges",
-# 					"set_warehouse",
-# 				],
-# 			},
-# 			"Sales Invoice Item": item_field_map,
-# 		},
-# 		target_doc,
-# 		set_missing_values,
-# 	)
-
-# 	return doclist
+from erpnext.accounts.party import  get_party_details
 
 @frappe.whitelist()
 def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None):
@@ -94,9 +20,30 @@ def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None
 	# Sales Invoice -> Purchase Invoice
 	# doc.set_warehouse = si.set_warehouse
 	doc.set_from_warehouse = si.set_target_warehouse
+	doc.supplier_address = si.company_address
+	doc.shipping_address =  si.customer_address
 
 	# ---- Force branch to be NULL ----
 	doc.branch = si.custom_internal_branch
+	doc.shipping_address_display = si.address_display
+	doc.bill_no = si.name
+	
+	party_details = get_party_details(
+		party=doc.supplier,
+		party_type="Supplier",
+		company=doc.company,
+		doctype="Purchase Invoice",
+		party_address=doc.supplier_address,
+		company_address=doc.company_address,
+	)
+
+	# Apply Purchase Tax Template automatically
+	doc.taxes_and_charges = party_details.get("taxes_and_charges")
+
+	if party_details.get("taxes"):
+		doc.set("taxes", party_details.get("taxes"))
+
+	doc.run_method("calculate_taxes_and_totals")
 	return doc
 
 @frappe.whitelist()
