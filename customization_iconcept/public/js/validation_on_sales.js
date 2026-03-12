@@ -91,21 +91,52 @@ frappe.ui.form.on('Sales Invoice', {
     },
     customer: function (frm) {
         if (frm.doc.customer) {
-            frappe.db.get_value(
-                "Customer",
-                frm.doc.customer,
-                "is_internal_customer"
-            ).then(r => {
-                const internal = r.message.is_internal_customer;
+            frappe.db.get_doc("Customer", frm.doc.customer).then(customer => {
+
+                const internal = customer.is_internal_customer;
 
                 frm.set_value(
-                    'custom_is_this_tax_included_in_basic_rate',
+                    "custom_is_this_tax_included_in_basic_rate",
                     internal ? 0 : 1
                 );
-                frm.toggle_reqd("sales_team", !internal);
 
+                // If internal customer, stop further checks
+                if (internal) {
+                    frm.toggle_reqd("sales_team", false);
+                    return;
+                }
+
+                // If not internal, check customer group
+                if (customer.customer_group) {
+                    frappe.db.get_value(
+                        "Customer Group",
+                        customer.customer_group,
+                        "custom_is_sales_person_not_mandatory"
+                    ).then(r => {
+
+                        const group_flag = r.message.custom_is_sales_person_not_mandatory;
+
+                        frm.toggle_reqd("sales_team", !group_flag);
+                    });
+                }
             });
         }
+        // if (frm.doc.customer) {
+        //     frappe.db.get_value(
+        //         "Customer",
+        //         frm.doc.customer,
+        //         "is_internal_customer"
+        //     ).then(r => {
+        //         const internal = r.message.is_internal_customer;
+
+        //         frm.set_value(
+        //             'custom_is_this_tax_included_in_basic_rate',
+        //             internal ? 0 : 1
+        //         );
+        //         frm.toggle_reqd("sales_team", !internal);
+
+        //     });
+        // }
         if (frm.doc.is_internal_customer) {
             frm.set_value(
                 'set_target_warehouse',
