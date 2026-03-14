@@ -107,7 +107,7 @@ def patched_format_report_data(filters: Filters, item_details: dict, to_date: st
         range_values = original_report.get_range_age(filters, fifo_queue, to_date, item_dict)
 
         original_report.check_and_replace_valuations_if_moving_average(
-            range_values, details.valuation_method, details.valuation_rate
+            range_values, details.valuation_method, details.valuation_rate, filters.get("company")
         )
 
         # 🔹 UPDATED ROW STRUCTURE
