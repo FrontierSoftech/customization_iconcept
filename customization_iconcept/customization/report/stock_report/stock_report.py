@@ -23,10 +23,10 @@ def get_columns():
         {"label": "Company Name", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 150},
         {"label": "Godown", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 150},
         {"label": "Item Group", "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
-        {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Data", "width": 130},
-        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Link", "options": "Item", "width": 150},
-        {"label": "Part Number", "fieldname": "item_code", "fieldtype": "Data", "width": 130},
-        {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Data", "width": 130},
+        {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Link","options": "Item Category", "width": 130},
+        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 150},
+        {"label": "Part Number", "fieldname": "item_code", "fieldtype": "Link", "options": "Item","width": 130},
+        {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Link", "options": "Item Sub Lob", "width": 130},
         {"label": "Stock Status", "fieldname": "stock_status", "fieldtype": "Data", "width": 130},
         {"label": "Qty", "fieldname": "qty", "fieldtype": "Float", "width": 120},
     ]
@@ -37,26 +37,45 @@ def get_conditions(filters):
 
     if filters.get("company"):
         conditions += " AND w.company = %(company)s"
-
+    
     if filters.get("warehouse"):
-        conditions += " AND b.warehouse = %(warehouse)s"
+        conditions += " AND b.warehouse IN %(warehouse)s"
 
     if filters.get("item_group"):
-        conditions += " AND i.item_group = %(item_group)s"
+        conditions += " AND i.item_group IN %(item_group)s"
 
     if filters.get("item_code"):
-        conditions += " AND b.item_code = %(item_code)s"
+        conditions += " AND b.item_code IN %(item_code)s"
 
     if filters.get("item_category"):
-        conditions += " AND i.custom_item_category = %(item_category)s"
+        conditions += " AND i.custom_item_category IN %(item_category)s"
 
     if filters.get("sub_lob"):
-        conditions += " AND i.custom_item_sub_lob = %(sub_lob)s"
+        conditions += " AND i.custom_item_sub_lob IN %(sub_lob)s"
+
+    # if filters.get("warehouse"):
+    #     conditions += " AND b.warehouse = %(warehouse)s"
+
+    # if filters.get("item_group"):
+    #     conditions += " AND i.item_group = %(item_group)s"
+
+    # if filters.get("item_code"):
+    #     conditions += " AND b.item_code = %(item_code)s"
+
+    # if filters.get("item_category"):
+    #     conditions += " AND i.custom_item_category = %(item_category)s"
+
+    # if filters.get("sub_lob"):
+    #     conditions += " AND i.custom_item_sub_lob = %(sub_lob)s"
 
     return conditions
 
 
 def get_data(filters):
+
+    for key in ["warehouse", "item_group", "item_code", "item_category", "sub_lob"]:
+        if filters.get(key):
+            filters[key] = tuple(filters.get(key))
 
     conditions = get_conditions(filters)
 
@@ -94,6 +113,8 @@ def get_data(filters):
     for row in stock_data:
 
         key = (row.item_code, row.warehouse)
+        pending_qty = flt(pending_map.get(key, 0))
+        actual_qty = flt(row.actual_qty)
 
         actual_row = {
             "company": row.company,
@@ -115,14 +136,14 @@ def get_data(filters):
             "item_code": row.item_code,
             "item_name": row.item_name,
             "custom_item_sub_lob": row.custom_item_sub_lob,
-            "stock_status": "Pending Qty",
+            "stock_status": "In-Transit",
             "qty": flt(pending_map.get(key, 0))
         }
 
-        if not filters.get("stock_status") or filters.get("stock_status") == "Actual Qty":
+        if (not filters.get("stock_status") or filters.get("stock_status") == "Actual Qty") and actual_qty != 0:
             data.append(actual_row)
 
-        if not filters.get("stock_status") or filters.get("stock_status") == "Pending Qty":
+        if (not filters.get("stock_status") or filters.get("stock_status") == "In-Transit") and pending_qty != 0:
             data.append(pending_row)
 
     return data

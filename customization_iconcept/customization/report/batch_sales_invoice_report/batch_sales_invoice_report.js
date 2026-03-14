@@ -29,20 +29,41 @@ frappe.query_reports["Batch Sales Invoice Report"] = {
             "default": frappe.datetime.get_today()
         },
         {
-            "fieldname": "customer",
-            "label": __("Party"),
-            "fieldtype": "Link",
-            "options": "Customer"
+            fieldname: "customer",
+            label: __("Party"),
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Customer", txt);
+            }
         },
         {
-            "fieldname": "set_warehouse",
-            "label": __("Item Godown"),
-            "fieldtype": "Link",
-            "options": "Warehouse"
+            fieldname: "set_warehouse",
+            label: __("Item Godown"),
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Warehouse", txt);
+            }
+        },
+
+        {
+            fieldname: "item_group",
+            label: "Item Group",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Group", txt);
+            }
+        },
+        {
+            fieldname: "item_category",
+            label: "Item Category",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Category", txt);
+            }
         }
     ],
 
-    "formatter": function(value, row, column, data, default_formatter) {
+    "formatter": function (value, row, column, data, default_formatter) {
         return default_formatter(value, row, column, data);
     }
 };

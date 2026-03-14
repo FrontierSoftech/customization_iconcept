@@ -30,21 +30,73 @@ frappe.query_reports["Purchase Invoice Report"] = {
         {
             "fieldname": "supplier",
             "label": __("Party"),
-            "fieldtype": "Link",
-            "options": "Supplier"
+            "fieldtype": "MultiSelectList",
+            "get_data": function(txt) {
+                return frappe.db.get_link_options("Supplier", txt);
+            }
         },
+
+        // PARTY GROUP
         {
             "fieldname": "supplier_group",
             "label": __("Party Group"),
-            "fieldtype": "Link",
-            "options": "Supplier Group"
+            "fieldtype": "MultiSelectList",
+            "get_data": function(txt) {
+                return frappe.db.get_link_options("Supplier Group", txt);
+            }
         },
+
+        // ITEM GODOWN
         {
             "fieldname": "set_warehouse",
             "label": __("Item Godown"),
-            "fieldtype": "Link",
-            "options": "Warehouse"
-        }
+            "fieldtype": "MultiSelectList",
+            "get_data": function(txt) {
+                return frappe.db.get_link_options("Warehouse", txt);
+            }
+        },
+                {
+            fieldname: "item_group",
+            label: "Item Group",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Group", txt);
+            }
+        },
+                       {
+            fieldname: "item_category",
+            label: "Item Category",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Category", txt);
+            }
+        },
+        {
+            fieldname: "sub_lob",
+            label: "Sub LOB",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Sub Lob", txt);
+            }
+        },
+        // {
+        //     "fieldname": "supplier",
+        //     "label": __("Party"),
+        //     "fieldtype": "Link",
+        //     "options": "Supplier"
+        // },
+        // {
+        //     "fieldname": "supplier_group",
+        //     "label": __("Party Group"),
+        //     "fieldtype": "Link",
+        //     "options": "Supplier Group"
+        // },
+        // {
+        //     "fieldname": "set_warehouse",
+        //     "label": __("Item Godown"),
+        //     "fieldtype": "Link",
+        //     "options": "Warehouse"
+        // }
     ],
 
     "formatter": function(value, row, column, data, default_formatter) {

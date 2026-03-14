@@ -33,11 +33,31 @@ def execute(filters=None):
     if filters.get("to_date"):
         conditions.append(f"pi.posting_date <= '{filters.get('to_date')}'")
     if filters.get("supplier"):
-        conditions.append(f"pi.supplier = '{filters.get('supplier')}'")
+        suppliers = "', '".join(filters.get("supplier"))
+        conditions.append(f"pi.supplier IN ('{suppliers}')")    
+    # MULTI PARTY GROUP
     if filters.get("supplier_group"):
-        conditions.append(f"sup.supplier_group = '{filters.get('supplier_group')}'")
+        groups = "', '".join(filters.get("supplier_group"))
+        conditions.append(f"sup.supplier_group IN ('{groups}')")
+    # MULTI WAREHOUSE
     if filters.get("set_warehouse"):
-        conditions.append(f"pi.set_warehouse = '{filters.get('set_warehouse')}'")
+        warehouses = "', '".join(filters.get("set_warehouse"))
+        conditions.append(f"pii.warehouse IN ('{warehouses}')")
+    if filters.get("item_group"):
+        item_groups = "', '".join(filters.get("item_group"))
+        conditions.append(f"item.item_group IN ('{item_groups}')")
+    if filters.get("item_category"):
+        categories = "', '".join(filters.get("item_category"))
+        conditions.append(f"item.custom_item_category IN ('{categories}')")
+    if filters.get("sub_lob"):
+        sub_lobs = "', '".join(filters.get("sub_lob"))
+        conditions.append(f"item.custom_item_sub_lob IN ('{sub_lobs}')")
+    # if filters.get("supplier"):
+    #     conditions.append(f"pi.supplier = '{filters.get('supplier')}'")
+    # if filters.get("supplier_group"):
+    #     conditions.append(f"sup.supplier_group = '{filters.get('supplier_group')}'")
+    # if filters.get("set_warehouse"):
+    #     conditions.append(f"pi.set_warehouse = '{filters.get('set_warehouse')}'")
 
     conditions_sql = " AND ".join(conditions)
     if conditions_sql:
@@ -47,7 +67,8 @@ def execute(filters=None):
         SELECT
             pi.company AS "Company Name",
             pi.name AS "Voucher Number",
-            pi.bill_no AS "Reference",
+            pi.bill_no AS "Supplier Invoice No",
+            pi.bill_date AS "Supplier Invoice Date",
             pi.posting_date AS "Date",
             pi.branch AS "Voucher Type",
             pi.supplier AS "Party Name",
@@ -129,19 +150,19 @@ def execute(filters=None):
         WHERE
             pi.docstatus = 1
             {conditions_sql}
-        ORDER BY
-            pi.posting_date DESC
+        ORDER BY pi.posting_date DESC
     """
 
     data = frappe.db.sql(query, as_dict=True)
 
     columns = [
-        {"label": "Company Name", "fieldname": "Company Name", "fieldtype": "Data", "width": 150},
-        {"label": "Voucher Number", "fieldname": "Voucher Number", "fieldtype": "Data", "width": 150},
-        {"label": "Reference", "fieldname": "Reference", "fieldtype": "Data", "width": 120},
+        {"label": "Company Name", "fieldname": "Company Name", "fieldtype": "Link", "options": "Company", "width": 150},
+        {"label": "Voucher Number", "fieldname": "Voucher Number", "fieldtype": "Link", "options": "Purchase Invoice", "width": 150},
+        {"label": "Supplier Invoice No", "fieldname": "Supplier Invoice No", "fieldtype": "Data", "width": 120},
+        {"label": "Supplier Invoice Date", "fieldname": "Supplier Invoice Date", "fieldtype": "Date", "width": 100},
         {"label": "Date", "fieldname": "Date", "fieldtype": "Date", "width": 100},
         {"label": "Voucher Type", "fieldname": "Voucher Type", "fieldtype": "Data", "width": 150},
-        {"label": "Party Name", "fieldname": "Party Name", "fieldtype": "Data", "width": 120},
+        {"label": "Party Name", "fieldname": "Party Name", "fieldtype": "Link", "options": "Supplier", "width": 120},
         {"label": "City", "fieldname": "City", "fieldtype": "Data", "width": 150},
         {"label": "Is Export", "fieldname": "Is Export", "fieldtype": "Data", "width": 120},
         {"label": "Export Date & Time", "fieldname": "Export Date & Time", "fieldtype": "Data", "width": 120},

@@ -30,21 +30,69 @@ frappe.query_reports["Sales Invoice Report"] = {
         {
             "fieldname": "customer_name",
             "label": __("Party"),
-            "fieldtype": "Link",
-            "options": "Customer"
+            "fieldtype": "MultiSelectList",
+            "get_data": function(txt) {
+                return frappe.db.get_link_options("Customer", txt);
+            }
         },
         {
             "fieldname": "customer_group",
             "label": __("Party Group"),
-            "fieldtype": "Link",
-            "options": "Customer Group"
+            "fieldtype": "MultiSelectList",
+            "get_data": function(txt) {
+                return frappe.db.get_link_options("Customer Group", txt);
+            }
+        },
+                {
+            fieldname: "item_group",
+            label: "Item Group",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Group", txt);
+            }
+        },
+               {
+            fieldname: "item_category",
+            label: "Item Category",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Category", txt);
+            }
+        },
+        {
+            fieldname: "sub_lob",
+            label: "Sub LOB",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Sub Lob", txt);
+            }
         },
         {
             "fieldname": "set_warehouse",
             "label": __("Item Godown"),
-            "fieldtype": "Link",
-            "options": "Warehouse"
+            "fieldtype": "MultiSelectList",
+            "get_data": function(txt) {
+                return frappe.db.get_link_options("Warehouse", txt);
+            }
         }
+        // {
+        //     "fieldname": "customer_name",
+        //     "label": __("Party"),
+        //     "fieldtype": "Link",
+        //     "options": "Customer"
+        // },
+        // {
+        //     "fieldname": "customer_group",
+        //     "label": __("Party Group"),
+        //     "fieldtype": "Link",
+        //     "options": "Customer Group"
+        // },
+        // {
+        //     "fieldname": "set_warehouse",
+        //     "label": __("Item Godown"),
+        //     "fieldtype": "Link",
+        //     "options": "Warehouse"
+        // }
     ],
 
     "formatter": function(value, row, column, data, default_formatter) {

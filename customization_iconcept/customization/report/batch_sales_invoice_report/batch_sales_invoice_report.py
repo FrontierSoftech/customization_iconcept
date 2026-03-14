@@ -22,9 +22,25 @@ def execute(filters=None):
     if filters.get("to_date"):
         conditions.append(f"si.posting_date <= '{filters.get('to_date')}'")
     if filters.get("customer"):
-        conditions.append(f"si.customer = '{filters.get('customer')}'")
+        customers = "', '".join(filters.get("customer"))
+        conditions.append(f"si.customer IN ('{customers}')")   
     if filters.get("set_warehouse"):
-        conditions.append(f"si.set_warehouse = '{filters.get('set_warehouse')}'")
+        warehouses = "', '".join(filters.get("set_warehouse"))
+        conditions.append(f"si.set_warehouse IN ('{warehouses}')")   
+    if filters.get("item_group"):
+        item_groups = "', '".join(filters.get("item_group"))
+        conditions.append(f"it.item_group IN ('{item_groups}')")   
+    if filters.get("item_category"):
+        item_categories = "', '".join(filters.get("item_category"))
+        conditions.append(f"it.custom_item_category IN ('{item_categories}')")   
+    # if filters.get("sub_lob"):
+    #     sub_lobs = "', '".join(filters.get("sub_lob"))
+    #     conditions.append(f"it.sub_lob IN ('{sub_lobs}')")   
+
+    # if filters.get("customer"):
+    #     conditions.append(f"si.customer = '{filters.get('customer')}'")
+    # if filters.get("set_warehouse"):
+    #     conditions.append(f"si.set_warehouse = '{filters.get('set_warehouse')}'")
 
     conditions_sql = " AND ".join(conditions)
     if conditions_sql:

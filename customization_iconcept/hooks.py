@@ -94,7 +94,8 @@ doctype_js = {
 
 }
 
-app_include_js = "/assets/customization_iconcept/js/customize_stock_balance.js"
+app_include_js = ["/assets/customization_iconcept/js/customize_stock_balance.js",
+                  "/assets/customization_iconcept/js/customize_stock_ageings.js"]
 
 # Purchase Receipt Order Table
 # override_whitelisted_methods = {
