@@ -478,7 +478,7 @@ class FIFOSlotss:
 				(bundle.docstatus == 1)
 				& (entry.serial_no.isnotnull())
 				& (bundle.company == self.filters.get("company"))
-				& (bundle.posting_date <= self.filters.get("to_date"))
+				& (bundle.posting_datetime <= self.filters.get("to_date"))
 			)
 		)
 		for field in ["item_code"]:
