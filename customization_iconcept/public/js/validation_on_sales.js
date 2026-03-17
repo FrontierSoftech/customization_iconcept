@@ -66,10 +66,12 @@ frappe.ui.form.on('Sales Invoice', {
             }
             if (child.mode === "Customer") {
                 return {
-                    filters: {
-                        customer_group: "Finance Lender",
-                        custom_branch: doc.branch
-                    }
+                    filters: [
+                        // customer_group: "Finance Lender",
+                        ["Customer", "customer_group", "descendants of", "Finance Lender"],
+                        // custom_branch: doc.branch
+                        ["Customer", "custom_branch", "=", doc.branch]
+                    ]
                 };
             }
         };

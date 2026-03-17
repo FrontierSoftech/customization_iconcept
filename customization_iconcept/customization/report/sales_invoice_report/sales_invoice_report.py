@@ -70,9 +70,15 @@ def execute(filters=None):
         account_map.append(acc['name'])
 
     # --- DYNAMIC CUSTOMER COLUMNS ---
+    descendants = frappe.db.get_list(
+        "Customer Group",
+        filters={"parent_customer_group": "Finance Lender"},
+        fields=["name"]
+    )
+    descendant_names = [d["name"] for d in descendants]
     finance_customers = frappe.db.get_list(
         "Customer",
-        filters={"customer_group": "Finance Lender"},
+        filters={"customer_group": ["in", descendant_names]},
         fields=["name"]
     )
 
@@ -109,7 +115,6 @@ def execute(filters=None):
             sii.rate AS "Rate Inclusive",
             sii.base_net_amount AS "Taxable Amount",
             sii.base_amount AS "Amount Inclusive",
-            si.base_grand_total AS "Company Final",
             si.custom_day AS "Day",
             si.custom_month AS "Month",
             si.custom_quarter AS "QTR",
@@ -118,7 +123,7 @@ def execute(filters=None):
             si.custom_internal_branch AS "Payment Mode",
             si.custom_branch_warehouse AS "Trade In",
             st.sales_person AS "Salesman",
-            st.sales_person AS "Combo LOB Discount",
+            '' AS "Combo LOB Discount",
             sii.price_list_rate AS "MRP",
             sii.discount_percentage AS "Discount",
             sii.rate AS "SaleRate",
@@ -186,7 +191,6 @@ def execute(filters=None):
         {"label": "Rate Inclusive", "fieldname": "Rate Inclusive", "fieldtype": "Currency", "width": 100},
         {"label": "Taxable Amount", "fieldname": "Taxable Amount", "fieldtype": "Currency", "width": 100},
         {"label": "Amount Inclusive", "fieldname": "Amount Inclusive", "fieldtype": "Currency", "width": 100},
-        {"label": "Company Final", "fieldname": "Company Final", "fieldtype": "Currency", "width": 120},
         {"label": "Day", "fieldname": "Day", "fieldtype": "Int", "width": 100},
         {"label": "Month", "fieldname": "Month", "fieldtype": "Int", "width": 100},
         {"label": "QTR", "fieldname": "QTR", "fieldtype": "Int", "width": 100},
