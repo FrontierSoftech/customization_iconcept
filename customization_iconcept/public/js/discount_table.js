@@ -51,7 +51,7 @@ function update_total_discount(frm) {
     });
     
     frm.set_value('custom_total_discount', total_discount);
-    frm.set_value('discount_amount', total_discount);
+    // frm.set_value('discount_amount', total_discount);
     frm.refresh_field('custom_discount_ledger');
 }
 

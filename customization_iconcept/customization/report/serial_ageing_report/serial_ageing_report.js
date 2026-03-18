@@ -31,6 +31,38 @@ frappe.query_reports["Serial Ageing Report"] = {
             get_data: function(txt) {
                 return frappe.db.get_link_options("Item", txt);
             }
-        }
+        },
+                        {
+            fieldname: "item_group",
+            label: "Item Group",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Group", txt);
+            }
+        },
+               {
+            fieldname: "item_category",
+            label: "Item Category",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Category", txt);
+            }
+        },
+        {
+            fieldname: "sub_lob",
+            label: "Sub LOB",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Item Sub Lob", txt);
+            }
+        },
+        {
+            fieldname: "brand",
+            label: "Brand",
+            fieldtype: "MultiSelectList",
+            get_data: function (txt) {
+                return frappe.db.get_link_options("Brand", txt);
+            }
+        },
     ]
 };

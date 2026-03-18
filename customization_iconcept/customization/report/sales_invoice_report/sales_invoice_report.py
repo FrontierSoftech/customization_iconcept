@@ -75,16 +75,15 @@ def execute(filters=None):
         filters={"parent_customer_group": "Finance Lender"},
         fields=["name"]
     )
-    descendant_names = [d["name"] for d in descendants]
-    finance_customers = frappe.db.get_list(
-        "Customer",
-        filters={"customer_group": ["in", descendant_names]},
-        fields=["name"]
-    )
-
+    # descendant_names = [d["name"] for d in descendants]
+    # finance_customers = frappe.db.get_list(
+    #     "Customer",
+    #     filters={"customer_group": ["in", descendant_names]},
+    #     fields=["name"]
+    # )
     customer_columns = []
     customer_map = []
-    for cust in finance_customers:
+    for cust in descendants:
         customer_columns.append({
             "label": cust['name'],
             "fieldname": cust['name'],
@@ -112,21 +111,33 @@ def execute(filters=None):
             it.custom_item_sub_lob AS "Sub LOB",
             sii.qty AS "Actual Quantity",
             sii.net_rate AS "Basic Rate",
-            sii.rate AS "Rate Inclusive",
-            sii.base_net_amount AS "Taxable Amount",
-            sii.base_amount AS "Amount Inclusive",
+            (
+                CASE
+                    WHEN IFNULL(sii.igst_amount, 0) > 0
+                        THEN sii.net_rate + IFNULL(sii.igst_amount, 0)
+                    ELSE
+                        sii.net_rate + IFNULL(sii.cgst_amount, 0) + IFNULL(sii.sgst_amount, 0)
+                END
+            ) AS "Rate Inclusive",
+            sii.taxable_value AS "Taxable Amount",
+            (
+                CASE
+                    WHEN IFNULL(sii.igst_amount, 0) > 0
+                        THEN ((sii.net_rate * sii.qty)+ IFNULL(sii.igst_amount, 0)) 
+                    ELSE
+                        ((sii.net_rate * sii.qty) + IFNULL(sii.cgst_amount, 0) + IFNULL(sii.sgst_amount, 0)) 
+                END
+            ) AS "Amount Inclusive",
+            si.rounded_total AS "Rounded Total",
             si.custom_day AS "Day",
             si.custom_month AS "Month",
             si.custom_quarter AS "QTR",
             si.billing_address_gstin AS "Bill Type",
             si.customer AS "Cust Nature",
-            si.custom_internal_branch AS "Payment Mode",
-            si.custom_branch_warehouse AS "Trade In",
             st.sales_person AS "Salesman",
-            '' AS "Combo LOB Discount",
             sii.price_list_rate AS "MRP",
             sii.discount_percentage AS "Discount",
-            sii.rate AS "SaleRate",
+            '' AS "NEED Purchase Price",
             c.custom_profession AS "Profession of a customer",
             c.gstin AS "GST Number",
             c.gst_category AS "GST Type"
@@ -168,7 +179,7 @@ def execute(filters=None):
 
         # Customer (finance lender) amounts
         for cust_name in customer_map:
-            row[cust_name] = sum(p["amount"] for p in payments if p["finance_lender"] == cust_name)
+            row[cust_name] = sum(p["amount"] for p in payments if frappe.db.get_value("Customer", p["finance_lender"], "customer_group") == cust_name)
 
     # --- DEFINE COLUMNS ---
     columns = [
@@ -191,18 +202,16 @@ def execute(filters=None):
         {"label": "Rate Inclusive", "fieldname": "Rate Inclusive", "fieldtype": "Currency", "width": 100},
         {"label": "Taxable Amount", "fieldname": "Taxable Amount", "fieldtype": "Currency", "width": 100},
         {"label": "Amount Inclusive", "fieldname": "Amount Inclusive", "fieldtype": "Currency", "width": 100},
+        {"label": "Rounded Total", "fieldname": "Rounded Total", "fieldtype": "Currency", "width": 100},
         {"label": "Day", "fieldname": "Day", "fieldtype": "Int", "width": 100},
         {"label": "Month", "fieldname": "Month", "fieldtype": "Int", "width": 100},
         {"label": "QTR", "fieldname": "QTR", "fieldtype": "Int", "width": 100},
         {"label": "Bill Type", "fieldname": "Bill Type", "fieldtype": "Data", "width": 100},
         {"label": "Cust Nature", "fieldname": "Cust Nature", "fieldtype": "Data", "width": 100},
-        {"label": "Payment Mode", "fieldname": "Payment Mode", "fieldtype": "Data", "width": 100},
-        {"label": "Trade In", "fieldname": "Trade In", "fieldtype": "Data", "width": 100},
         {"label": "Salesman", "fieldname": "Salesman", "fieldtype": "Data", "width": 120},
-        {"label": "Combo LOB Discount", "fieldname": "Combo LOB Discount", "fieldtype": "Data", "width": 120},
         {"label": "MRP", "fieldname": "MRP", "fieldtype": "Data", "width": 120},
         {"label": "Discount", "fieldname": "Discount", "fieldtype": "Percent", "width": 80},
-        {"label": "SaleRate", "fieldname": "SaleRate", "fieldtype": "Currency", "width": 100},
+        {"label": "Need Purchase Price", "fieldname": "Need Purchase Price", "fieldtype": "Currency", "width": 150},
         {"label": "Profession of a customer", "fieldname": "Profession of a customer", "fieldtype": "Data", "width": 100},
         {"label": "GST Number", "fieldname": "GST Number", "fieldtype": "Data", "width": 120},
         {"label": "GST Type", "fieldname": "GST Type", "fieldtype": "Data", "width": 100},

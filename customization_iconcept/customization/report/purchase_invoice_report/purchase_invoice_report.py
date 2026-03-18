@@ -105,8 +105,8 @@ def execute(filters=None):
             pii.brand AS "Extra 2",
             pii.brand AS "IMEI One",
             pii.brand AS "IMEI Two",
-            pii.serial_no AS "Serial No",
-            pii.batch_no AS "Item Batch",
+            sbe.serial_no AS "Serial No",
+            sbe.batch_no AS "Item Batch",
             pii.serial_no AS "Apple HQ ID",
             pii.rate AS "Batch Rate",
             pii.qty AS "Actual Quantity",
@@ -130,6 +130,12 @@ def execute(filters=None):
         LEFT JOIN
             `tabPurchase Invoice Item` pii
             ON pii.parent = pi.name
+
+        LEFT JOIN `tabSerial and Batch Bundle` sbb
+            ON sbb.name = pii.serial_and_batch_bundle
+
+        LEFT JOIN `tabSerial and Batch Entry` sbe
+            ON sbe.parent = sbb.name
 
         LEFT JOIN
             `tabSupplier` sup
