@@ -14,8 +14,9 @@ doc_events = {
                       "customization_iconcept.share_interal_trans_to_sm.share_internal_trans_to_sm",
                       ],
         "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry",
-        "before_save":["customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center",
-                       "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
+        "before_save":[
+            "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center",
+            "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
         ],
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields",
         "before_submit" : "customization_iconcept.unreconcile_journal_entry.unreconcile_payments_for_credit_note" 
