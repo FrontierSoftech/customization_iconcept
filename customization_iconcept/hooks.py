@@ -85,6 +85,7 @@ doctype_js = {
         "public/js/discount_table.js",
         "public/js/stock_transfer.js",
         "public/js/valuation_rate_sale.js",
+        "public/js/set_place_of_supply.js",
     ], 
     "Payment Entry": "public/js/reference_no_payment.js",
     "Journal Entry": "public/js/journal_entry.js",
