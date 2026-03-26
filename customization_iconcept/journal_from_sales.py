@@ -125,6 +125,8 @@ def create_finance_lender_jv(doc, method):
         je2.custom_reference_name = doc.name
         je2.custom_branch = doc.branch
         je2.custom_cost_center = doc.cost_center
+        je2.cheque_no = doc.name
+        je2.cheque_date = doc.posting_date
 
         total_discount = 0
 
