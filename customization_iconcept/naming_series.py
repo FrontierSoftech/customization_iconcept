@@ -3,17 +3,18 @@ from frappe.model.naming import make_autoname
 from frappe.utils import getdate
 from frappe import _
 
-fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", getdate()], "year_end_date": [">=", getdate()],"disabled": 0}, "name")
-
-if not fy:
-    frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
-
-if "-" in fy:
-    start_year = fy.split("-")[0]
-else:
-    start_year = fy
-    
+   
 def before_insert(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.posting_date], "year_end_date": [">=", doc.posting_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
+
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))
@@ -60,6 +61,16 @@ def before_insert(doc, method):
         # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./S-{start_year}/.#")
 
 def naming_series_sales_order(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.transaction_date], "year_end_date": [">=", doc.transaction_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
+
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))
@@ -68,6 +79,16 @@ def naming_series_sales_order(doc, method):
     # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./SO-{start_year}/.#")
 
 def naming_series_delivery_note(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.posting_date], "year_end_date": [">=", doc.posting_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
+
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))
@@ -76,6 +97,15 @@ def naming_series_delivery_note(doc, method):
     # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./DN-{start_year}/.#")
 
 def naming_series_purchase_invoice(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.posting_date], "year_end_date": [">=", doc.posting_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
     
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
@@ -111,6 +141,16 @@ def naming_series_purchase_invoice(doc, method):
         # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./PI-{start_year}/.#")
 
 def naming_series_purchase_order(doc, method):
+
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.transaction_date], "year_end_date": [">=", doc.transaction_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
     if doc.name:
         return
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
@@ -121,6 +161,16 @@ def naming_series_purchase_order(doc, method):
     doc.name = make_autoname(f"{company_abbr}{doc.custom_branch_code}/PO{start_year}/.#")
 
 def naming_series_purchase_receipt(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.posting_date], "year_end_date": [">=", doc.posting_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
+
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))
@@ -129,6 +179,15 @@ def naming_series_purchase_receipt(doc, method):
     doc.name = make_autoname(f"{company_abbr}{doc.custom_branch_code}/R{start_year}/.#")
 
 def naming_series_payment_entry(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.posting_date], "year_end_date": [">=", doc.posting_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))
@@ -138,6 +197,15 @@ def naming_series_payment_entry(doc, method):
         # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./PY-{start_year}/.#")
 
 def naming_series_journal_entry(doc, method):
+    fy = frappe.db.get_value("Fiscal Year",{"year_start_date": ["<=", doc.posting_date], "year_end_date": [">=", doc.posting_date],"disabled": 0}, "name")
+
+    if not fy:
+        frappe.throw(_("No active Fiscal Year found for today. Please add a Fiscal Year."))
+
+    if "-" in fy:
+        start_year = fy.split("-")[0]
+    else:
+        start_year = fy
     company_abbr = frappe.db.get_value("Company",doc.company,"custom_company_abbr_for_voucher")
     if(company_abbr == None):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))

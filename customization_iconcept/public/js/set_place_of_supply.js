@@ -39,20 +39,34 @@ const GST_STATES = {
     "97": "Other Territory"
 };
 
-// frappe.ui.form.on('Sales Invoice', {
-//     place_of_supply: function(frm) {
-//         set_place_of_supply(frm);
-//     },
-// });
+frappe.ui.form.on('Sales Invoice', {
+    refresh: function(frm) {
+        set_place_of_supply(frm);
+    },
+    taxes_and_charges: function(frm) {
+        apply_inclusive_gst(frm);
+    },
+});
 
 frappe.ui.form.on('Sales Invoice Item', {
     item_code: function(frm, cdt, cdn) {
         let row = locals[cdt][cdn];
-        set_place_of_supply(frm);
+        // set_place_of_supply(frm);
+        frm.refresh_field('place_of_supply');
         frappe.model.set_value(cdt, cdn, 'branch', frm.doc.branch);
         frappe.model.set_value(cdt, cdn, 'cost_center', frm.doc.cost_center);
     },
 });
+
+function apply_inclusive_gst(frm) {
+    if (!frm.doc.custom_is_this_tax_included_in_basic_rate) return;
+
+    (frm.doc.taxes || []).forEach(row => {
+        row.included_in_print_rate = frm.doc.custom_is_this_tax_included_in_basic_rate;
+    });
+
+    frm.refresh_field('taxes');
+}
 
 function set_place_of_supply(frm) {
     // Ensure customer and branch are set
