@@ -23,7 +23,7 @@ doc_events = {
     },
     "Journal Entry": {
         "before_cancel":"customization_iconcept.cancel_the_journal_entry.cancel_linked_journal_entery",
-        "before_insert": "customization_iconcept.naming_series.naming_series_journal_entry"
+        "autoname": "customization_iconcept.naming_series.naming_series_journal_entry"
     },
     "Sales Order": {
         "before_insert": "customization_iconcept.naming_series.naming_series_sales_order",
@@ -42,11 +42,11 @@ doc_events = {
         "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"
     },
     "Purchase Order": {
-        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_order",
+        "autoname": "customization_iconcept.naming_series.naming_series_purchase_order",
         "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"
     },
     "Purchase Receipt": {
-        "before_insert": "customization_iconcept.naming_series.naming_series_purchase_receipt",
+        "autoname": "customization_iconcept.naming_series.naming_series_purchase_receipt",
         "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"
     },
     "Payment Entry": {
