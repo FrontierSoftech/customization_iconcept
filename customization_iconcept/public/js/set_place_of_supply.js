@@ -41,6 +41,7 @@ const GST_STATES = {
 
 frappe.ui.form.on('Sales Invoice', {
     refresh: function(frm) {
+        if (frm.doc.docstatus !== 0) return;
         set_place_of_supply(frm);
     }
 });
