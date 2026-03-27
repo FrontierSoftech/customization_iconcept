@@ -1,8 +1,8 @@
-frappe.ui.form.on('Sales Invoice', {
-    refresh: function (frm) {
-        update_total_discount(frm);
-    }
-});
+// frappe.ui.form.on('Sales Invoice', {
+//     refresh: function (frm) {
+//         update_total_discount(frm);
+//     }
+// });
 
 frappe.ui.form.on('Sales Invoice Item', {
     rate: function (frm) {

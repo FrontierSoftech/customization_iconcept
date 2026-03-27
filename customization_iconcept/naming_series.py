@@ -143,13 +143,13 @@ def naming_series_journal_entry(doc, method):
         frappe.throw(_("Please set the Company Abbreviation for Voucher in Company"))
     if doc.voucher_type == "Contra Entry":
         doc.naming_series = f"{company_abbr}{doc.custom_branch_code}/C{start_year}/.#"
-        doc.name = f"{company_abbr}{doc.custom_branch_code}/C{start_year}/.#"
+        doc.name = make_autoname(f"{company_abbr}{doc.custom_branch_code}/C{start_year}/.#")
     elif doc.custom_branch_code == None:
         doc.naming_series = f"{company_abbr}/JV{start_year}/.#"
-        doc.name = f"{company_abbr}/JV{start_year}/.#"
+        doc.name = make_autoname(f"{company_abbr}/JV{start_year}/.#")
     else:
         doc.naming_series = f"{company_abbr}{doc.custom_branch_code}/JV{start_year}/.#"
-        doc.name = f"{company_abbr}{doc.custom_branch_code}/JV{start_year}/.#"
+        doc.name = make_autoname(f"{company_abbr}{doc.custom_branch_code}/JV{start_year}/.#")
     # doc.name = make_autoname(f".{doc.custom_company_abbr}.-.{doc.custom_branch_code}./JE-{start_year}/.#")
 
 
