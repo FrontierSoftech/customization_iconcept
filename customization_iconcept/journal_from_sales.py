@@ -71,8 +71,7 @@ def create_finance_lender_jv(doc, method):
                 "cost_center": doc.cost_center,
                 "reference_type": doc.doctype,
                 "reference_name": doc.name,
-                "reference_due_date": doc.posting_date,
-                "is_advance" : "Yes"
+                "reference_due_date": doc.posting_date
             })
 
             je1.insert()
@@ -108,8 +107,7 @@ def create_finance_lender_jv(doc, method):
                 "cost_center": doc.cost_center,
                 "reference_type": doc.doctype,
                 "reference_name": doc.name,
-                "reference_due_date": doc.posting_date,
-                "is_advance" : "Yes"
+                "reference_due_date": doc.posting_date
             })
 
             je1.insert()

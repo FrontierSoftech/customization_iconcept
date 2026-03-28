@@ -16,7 +16,7 @@ doc_events = {
         "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry",
         "before_save":[
             "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center",
-            "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
+            # "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
         ],
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields",
         "before_submit" : "customization_iconcept.unreconcile_journal_entry.unreconcile_payments_for_credit_note" 
@@ -85,7 +85,7 @@ doctype_js = {
         "public/js/discount_table.js",
         "public/js/stock_transfer.js",
         "public/js/valuation_rate_sale.js",
-        "public/js/set_place_of_supply.js",
+        # "public/js/set_place_of_supply.js",
     ], 
     "Payment Entry": "public/js/reference_no_payment.js",
     "Journal Entry": "public/js/journal_entry.js",
