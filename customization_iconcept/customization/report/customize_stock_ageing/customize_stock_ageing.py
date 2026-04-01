@@ -10,6 +10,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: GNU General Public License v3. See license.txt
 
+# Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
+# License: GNU General Public License v3. See license.txt
+
 
 from collections.abc import Iterator
 from operator import itemgetter
@@ -23,122 +26,18 @@ from erpnext.stock.doctype.serial_no.serial_no import get_serial_nos
 
 Filters = frappe._dict
 
-def execute(filters=None):
-    # Convert filters to frappe._dict for easier access
-    filters = frappe._dict(filters or {})
 
-    # --- MultiSelectList filter normalization ---
-    multi_fields = ["warehouse", "item_code", "brand", "item_group", "custom_item_category", "custom_item_sub_lob"]
-    for field in multi_fields:
-        if filters.get(field):
-            if isinstance(filters[field], str): filters[field] = [x.strip() for x in filters[field].split(",") if x.strip()]
-            elif isinstance(filters.get(field), list):filters[field] = [x for x in filters[field] if x]
+def execute(filters: Filters = None) -> tuple:
+	to_date = filters["to_date"]
+	filters.ranges = [num.strip() for num in filters.range.split(",") if num.strip().isdigit()]
+	columns = get_columns(filters)
 
-            else:
-                filters[field] = []
+	item_details = FIFOSlots(filters).generate()
+	data = format_report_data(filters, item_details, to_date)
 
-    # --- Original report logic ---
-    to_date = filters["to_date"]
-    filters.ranges = [num.strip() for num in filters.range.split(",") if num.strip().isdigit()]
-    columns = get_columns(filters)
-    item_details = FIFOSlotss(filters).generate()
-    data = patched_format_report_data(filters, item_details, to_date)
-    chart_data = patched_get_chart_data(data, filters)
+	chart_data = get_chart_data(data, filters)
 
-    return columns, data, None, chart_data
-
-def patched_format_report_data(filters: Filters, item_details: dict, to_date: str) -> list[dict]:
-    _func = itemgetter(1)
-    data = []
-
-    precision = cint(
-        frappe.db.get_single_value("System Settings", "float_precision", cache=True)
-    )
-
-    for _item, item_dict in item_details.items():
-
-        if not flt(item_dict.get("total_qty"), precision):
-            continue
-
-        details = item_dict["details"]
-
-        fifo_queue = sorted(filter(_func, item_dict["fifo_queue"]), key=_func)
-
-        if not fifo_queue:
-            continue
-
-        average_age = get_average_age(fifo_queue, to_date)
-        earliest_age = date_diff(to_date, fifo_queue[0][1])
-        latest_age = date_diff(to_date, fifo_queue[-1][1])
-
-        range_values = get_range_age(filters, fifo_queue, to_date, item_dict)
-
-        check_and_replace_valuations_if_moving_average(
-            range_values, details.valuation_method, details.valuation_rate, filters.get("company")
-        )
-
-        # 🔹 UPDATED ROW STRUCTURE
-        row = [
-            details.name,
-            details.item_name,
-            details.description,
-            details.item_group,
-            details.custom_item_category,
-            details.custom_item_sub_lob,
-            details.brand,
-        ]
-
-        if filters.get("show_warehouse_wise_stock"):
-            row.append(details.warehouse)
-
-        row.extend(
-            [
-                flt(item_dict.get("total_qty"), precision),
-                average_age,
-                *range_values,
-                earliest_age,
-                latest_age,
-                details.stock_uom,
-            ]
-        )
-
-        data.append(row)
-
-    return data
-
-def patched_get_chart_data(data, filters):
-
-    if not data:
-        return []
-
-    if filters.get("show_warehouse_wise_stock"):
-        return {}
-
-    labels = []
-    datapoints = []
-
-    # average_age is now index 8
-    data.sort(key=lambda row: row[8] if row[8] else 0, reverse=True)
-
-    if len(data) > 10:
-        data = data[:10]
-
-    for row in data:
-        labels.append(row[0])
-        datapoints.append(row[8])
-
-    return {
-        "data": {
-            "labels": labels,
-            "datasets": [
-                {
-                    "name": "Average Age",
-                    "values": datapoints,
-                }
-            ],
-        },
-        "type": "bar",
-    }
+	return columns, data, None, chart_data
 
 
 def format_report_data(filters: Filters, item_details: dict, to_date: str) -> list[dict]:
@@ -166,10 +65,10 @@ def format_report_data(filters: Filters, item_details: dict, to_date: str) -> li
 		range_values = get_range_age(filters, fifo_queue, to_date, item_dict)
 
 		check_and_replace_valuations_if_moving_average(
-			range_values, details.valuation_method, details.valuation_rate
+			range_values, details.valuation_method, details.valuation_rate, filters.get("company")
 		)
 
-		row = [details.name, details.item_name, details.description, details.item_group, details.brand]
+		row = [details.name, details.item_name, details.description, details.item_group, details.brand, details.custom_item_category, details.custom_item_sub_lob]
 
 		if filters.get("show_warehouse_wise_stock"):
 			row.append(details.warehouse)
@@ -190,10 +89,12 @@ def format_report_data(filters: Filters, item_details: dict, to_date: str) -> li
 	return data
 
 
-def check_and_replace_valuations_if_moving_average(range_values, item_valuation_method, valuation_rate):
+def check_and_replace_valuations_if_moving_average(
+	range_values, item_valuation_method, valuation_rate, company
+):
 	if item_valuation_method == "Moving Average" or (
 		not item_valuation_method
-		and frappe.db.get_single_value("Stock Settings", "valuation_method") == "Moving Average"
+		and frappe.get_cached_value("Company", company, "valuation_method") == "Moving Average"
 	):
 		for i in range(0, len(range_values), 2):
 			range_values[i + 1] = range_values[i] * valuation_rate
@@ -257,6 +158,13 @@ def get_columns(filters: Filters) -> list[dict]:
 			"width": 100,
 		},
 		{
+			"label": _("Brand"),
+			"fieldname": "brand",
+			"fieldtype": "Link",
+			"options": "Brand",
+			"width": 100,
+		}, 
+		{
 		    "label": _("Item Category"),
 		    "fieldname": "custom_item_category",
 		    "fieldtype": "Link",
@@ -270,14 +178,6 @@ def get_columns(filters: Filters) -> list[dict]:
 		    "options": "Item Sub Lob",
 		    "width": 120,
 		},
-		{
-			"label": _("Brand"),
-			"fieldname": "brand",
-			"fieldtype": "Link",
-			"options": "Brand",
-			"width": 100,
-		},
-		
 	]
 
 	if filters.get("show_warehouse_wise_stock"):
@@ -310,27 +210,37 @@ def get_columns(filters: Filters) -> list[dict]:
 
 
 def get_chart_data(data: list, filters: Filters) -> dict:
-	if not data:
-		return []
+    if not data:
+        return []
 
-	labels, datapoints = [], []
+    if filters.get("show_warehouse_wise_stock"):
+        return {}
 
-	if filters.get("show_warehouse_wise_stock"):
-		return {}
+    labels = []
+    datapoints = []
 
-	data.sort(key=lambda row: row[6], reverse=True)
+    # average_age is now index 8
+    data.sort(key=lambda row: row[8] if row[8] else 0, reverse=True)
 
-	if len(data) > 10:
-		data = data[:10]
+    if len(data) > 10:
+        data = data[:10]
 
-	for row in data:
-		labels.append(row[0])
-		datapoints.append(row[6])
+    for row in data:
+        labels.append(row[0])
+        datapoints.append(row[8])
 
-	return {
-		"data": {"labels": labels, "datasets": [{"name": _("Average Age"), "values": datapoints}]},
-		"type": "bar",
-	}
+    return {
+        "data": {
+            "labels": labels,
+            "datasets": [
+                {
+                    "name": "Average Age",
+                    "values": datapoints,
+                }
+            ],
+        },
+        "type": "bar",
+    }
 
 
 def setup_ageing_columns(filters: Filters, range_columns: list):
@@ -352,7 +262,7 @@ def add_column(range_columns: list, label: str, fieldname: str, fieldtype: str =
 	range_columns.append(dict(label=label, fieldname=fieldname, fieldtype=fieldtype, width=width))
 
 
-class FIFOSlotss:
+class FIFOSlots:
 	"Returns FIFO computed slots of inwarded stock as per date."
 
 	def __init__(self, filters: dict | None = None, sle: list | None = None):
@@ -367,15 +277,12 @@ class FIFOSlotss:
 		Returns dict of the foll.g structure:
 		Key = Item A / (Item A, Warehouse A)
 		Key: {
-		        'details' -> Dict: ** item details **,
-		        'fifo_queue' -> List: ** list of lists containing entries/slots for existing stock,
-		                consumed/updated and maintained via FIFO. **
+		                'details' -> Dict: ** item details **,
+		                'fifo_queue' -> List: ** list of lists containing entries/slots for existing stock,
+		                                consumed/updated and maintained via FIFO. **
 		}
 		"""
-
-		from erpnext.stock.doctype.serial_and_batch_bundle.test_serial_and_batch_bundle import (
-			get_serial_nos_from_bundle,
-		)
+		from erpnext.stock.serial_batch_bundle import get_serial_nos_from_bundle
 
 		stock_ledger_entries = self.sle
 
@@ -383,16 +290,33 @@ class FIFOSlotss:
 		if stock_ledger_entries is None:
 			bundle_wise_serial_nos = self.__get_bundle_wise_serial_nos()
 
+		# prepare single sle voucher detail lookup
+		self.prepare_stock_reco_voucher_wise_count()
+
 		with frappe.db.unbuffered_cursor():
 			if stock_ledger_entries is None:
 				stock_ledger_entries = self.__get_stock_ledger_entries()
 
 			for d in stock_ledger_entries:
 				key, fifo_queue, transferred_item_key = self.__init_key_stores(d)
+				prev_balance_qty = self.item_details[key].get("qty_after_transaction", 0)
 
-				if d.voucher_type == "Stock Reconciliation":
+				if d.voucher_type == "Stock Reconciliation" and (
+					not d.batch_no or d.serial_no or d.serial_and_batch_bundle
+				):
+					if d.voucher_detail_no in self.stock_reco_voucher_wise_count:
+						# for legacy recon with single sle has qty_after_transaction and stock_value_difference without outward entry
+						# for exisitng handle emptying the existing queue and details.
+						d.stock_value_difference = flt(d.qty_after_transaction * d.valuation_rate)
+						d.actual_qty = d.qty_after_transaction
+						self.item_details[key]["qty_after_transaction"] = 0
+						self.item_details[key]["total_qty"] = 0
+						fifo_queue.clear()
+					else:
+						d.actual_qty = flt(d.qty_after_transaction) - flt(prev_balance_qty)
+
+				elif d.voucher_type == "Stock Reconciliation":
 					# get difference in qty shift as actual qty
-					prev_balance_qty = self.item_details[key].get("qty_after_transaction", 0)
 					d.actual_qty = flt(d.qty_after_transaction) - flt(prev_balance_qty)
 
 				serial_nos = get_serial_nos(d.serial_no) if d.serial_no else []
@@ -400,7 +324,7 @@ class FIFOSlotss:
 					if bundle_wise_serial_nos:
 						serial_nos = bundle_wise_serial_nos.get(d.serial_and_batch_bundle) or []
 					else:
-						serial_nos = get_serial_nos_from_bundle(d.serial_and_batch_bundle) or []
+						serial_nos = sorted(get_serial_nos_from_bundle(d.serial_and_batch_bundle)) or []
 
 				serial_nos = self.uppercase_serial_nos(serial_nos)
 				if d.actual_qty > 0:
@@ -409,6 +333,14 @@ class FIFOSlotss:
 					self.__compute_outgoing_stock(d, fifo_queue, transferred_item_key, serial_nos)
 
 				self.__update_balances(d, key)
+
+				# handle serial nos misconsumption
+				if d.has_serial_no:
+					qty_after = cint(self.item_details[key]["qty_after_transaction"])
+					if qty_after <= 0:
+						fifo_queue.clear()
+					elif len(fifo_queue) > qty_after:
+						fifo_queue[:] = fifo_queue[:qty_after]
 
 			# Note that stock_ledger_entries is an iterator, you can not reuse it like a list
 			del stock_ledger_entries
@@ -536,7 +468,6 @@ class FIFOSlotss:
 
 	def __update_balances(self, row: dict, key: tuple | str):
 		self.item_details[key]["qty_after_transaction"] = row.qty_after_transaction
-
 		if "total_qty" not in self.item_details[key]:
 			self.item_details[key]["total_qty"] = row.actual_qty
 		else:
@@ -573,6 +504,7 @@ class FIFOSlotss:
 		sle = frappe.qb.DocType("Stock Ledger Entry")
 		item = self.__get_item_query()  # used as derived table in sle query
 		to_date = get_datetime(self.filters.get("to_date") + " 23:59:59")
+
 		sle_query = (
 			frappe.qb.from_(sle)
 			.from_(item)
@@ -580,9 +512,9 @@ class FIFOSlotss:
 				item.name,
 				item.item_name,
 				item.item_group,
-				item.brand,
-				item.custom_item_category,
+    			item.custom_item_category,
 				item.custom_item_sub_lob,
+				item.brand,
 				item.description,
 				item.stock_uom,
 				item.has_serial_no,
@@ -593,6 +525,7 @@ class FIFOSlotss:
 				sle.posting_date,
 				sle.voucher_type,
 				sle.voucher_no,
+				sle.voucher_detail_no,
 				sle.serial_no,
 				sle.batch_no,
 				sle.qty_after_transaction,
@@ -606,23 +539,33 @@ class FIFOSlotss:
 				& (sle.is_cancelled != 1)
 			)
 		)
+
 		if self.filters.get("warehouse"):
-			sle_query = sle_query.where(sle.warehouse.isin(self.filters.get("warehouse")))
-	
+			warehouses = self.filters.get("warehouse")
+
+			if isinstance(warehouses, str):
+				warehouses = [warehouses]
+
+			sle_query = sle_query.where(sle.warehouse.isin(warehouses))
 		elif self.filters.get("warehouse_type"):
 			warehouses = frappe.get_all(
 				"Warehouse",
 				filters={"warehouse_type": self.filters.get("warehouse_type"), "is_group": 0},
 				pluck="name",
 			)
+
 			if warehouses:
 				sle_query = sle_query.where(sle.warehouse.isin(warehouses))
+
 		sle_query = sle_query.orderby(sle.posting_datetime, sle.creation)
+
 		return sle_query.run(as_dict=True, as_iterator=True)
 
 	def __get_bundle_wise_serial_nos(self) -> dict:
 		bundle = frappe.qb.DocType("Serial and Batch Bundle")
 		entry = frappe.qb.DocType("Serial and Batch Entry")
+
+		to_date = get_datetime(self.filters.get("to_date") + " 23:59:59")
 		query = (
 			frappe.qb.from_(bundle)
 			.join(entry)
@@ -632,77 +575,133 @@ class FIFOSlotss:
 				(bundle.docstatus == 1)
 				& (entry.serial_no.isnotnull())
 				& (bundle.company == self.filters.get("company"))
-				& (bundle.posting_datetime <= self.filters.get("to_date"))
+				& (bundle.posting_datetime <= to_date)
 			)
 		)
+
 		for field in ["item_code"]:
 			if self.filters.get(field):
-				# query = query.where(bundle[field] == self.filters.get(field))
-				query = query.where(bundle[field].isin(self.filters.get(field)))
+				values = self.filters.get(field)
+
+				# normalize
+				if isinstance(values, str):
+					values = [values]
+
+				if isinstance(values, list) and values:
+					query = query.where(bundle[field].isin(values))
+
 		if self.filters.get("warehouse"):
-			query = query.where(bundle.warehouse.isin(self.filters.get("warehouse")))
+			query = self.__get_warehouse_conditions(bundle, query)
+
 		bundle_wise_serial_nos = frappe._dict({})
 		for bundle_name, serial_no in query.run():
 			bundle_wise_serial_nos.setdefault(bundle_name, []).append(serial_no)
+
 		return bundle_wise_serial_nos
 
-	def __get_item_query(self) -> str:
+	def __get_item_query(self):
 		item = frappe.qb.DocType("Item")
-		
-		query = (
-    	    frappe.qb.from_("Item")
-    	    .select(
-    	        item.name,
-    	        item.item_name,
-    	        item.description,
-    	        item.stock_uom,
-    	        item.brand,
-    	        item.item_group,
-    	        item.has_serial_no,
-    	        item.valuation_method,
-    	        item.custom_item_category,
-    			item.custom_item_sub_lob,
-    	    )
-    	)
-		
+
+		query = frappe.qb.from_(item).select(
+			item.name,
+			item.item_name,
+			item.description,
+			item.stock_uom,
+			item.brand,
+			item.item_group,
+			item.has_serial_no,
+			item.valuation_method,
+   			item.custom_item_category,     
+			item.custom_item_sub_lob      
+		)
+
+		# ✅ MULTI ITEM FILTER
 		if self.filters.get("item_code"):
-			query = query.where(item.name.isin(self.filters.get("item_code")))
-		
+			items = self.filters.get("item_code")
+			if isinstance(items, str):
+				items = [items]
+			query = query.where(item.name.isin(items))
+
+		# ✅ MULTI BRAND FILTER
 		if self.filters.get("brand"):
-			query = query.where(item.brand.isin(self.filters.get("brand")))
+			brands = self.filters.get("brand")
+			if isinstance(brands, str):
+				brands = [brands]
+			query = query.where(item.brand.isin(brands))
+
+		# ✅ MULTI ITEM GROUP (WITH CHILDREN)
 		if self.filters.get("item_group"):
-			query = query.where(item.item_group.isin(self.filters.get("item_group")))
+			from frappe.utils.nestedset import get_descendants_of
+
+			groups = self.filters.get("item_group")
+			if isinstance(groups, str):
+				groups = [groups]
+
+			all_groups = []
+			for g in groups:
+				all_groups.extend(get_descendants_of("Item Group", g))
+				all_groups.append(g)
+
+			query = query.where(item.item_group.isin(all_groups))
+
+		# ✅ OPTIONAL CUSTOM FIELDS
 		if self.filters.get("item_category"):
-			query = query.where(item.custom_item_category.isin(self.filters.get("item_category")))
+			cats = self.filters.get("item_category")
+			if isinstance(cats, str):
+				cats = [cats]
+			query = query.where(item.custom_item_category.isin(cats))
+
 		if self.filters.get("item_sub_lob"):
-			query = query.where(item.custom_item_sub_lob.isin(self.filters.get("item_sub_lob")))
-		return query	
-	
+			lobs = self.filters.get("item_sub_lob")
+			if isinstance(lobs, str):
+				lobs = [lobs]
+			query = query.where(item.custom_item_sub_lob.isin(lobs))
+
+		return query
+
 	def __get_warehouse_conditions(self, sle, sle_query) -> str:
 		warehouse = frappe.qb.DocType("Warehouse")
+		lft, rgt = frappe.db.get_value("Warehouse", self.filters.get("warehouse"), ["lft", "rgt"])
 
-		selected_warehouses = self.filters.get("warehouse")
-		if not selected_warehouses:
-			return sle_query
+		warehouse_results = (
+			frappe.qb.from_(warehouse)
+			.select("name")
+			.where((warehouse.lft >= lft) & (warehouse.rgt <= rgt))
+			.run()
+		)
+		warehouse_results = [x[0] for x in warehouse_results]
 
-		if isinstance(selected_warehouses, str):
-			selected_warehouses = [selected_warehouses]
+		return sle_query.where(sle.warehouse.isin(warehouse_results))
 
-		all_warehouses = []
+	def prepare_stock_reco_voucher_wise_count(self):
+		self.stock_reco_voucher_wise_count = frappe._dict()
 
-		for wh in selected_warehouses:
-			lft, rgt = frappe.db.get_value("Warehouse", wh, ["lft", "rgt"])
+		doctype = frappe.qb.DocType("Stock Ledger Entry")
+		item = frappe.qb.DocType("Item")
 
-			results = (
-				frappe.qb.from_(warehouse)
-				.select(warehouse.name)
-				.where((warehouse.lft >= lft) & (warehouse.rgt <= rgt))
-				.run()
+		query = (
+			frappe.qb.from_(doctype)
+			.inner_join(item)
+			.on(doctype.item_code == item.name)
+			.select(doctype.voucher_detail_no, Count(doctype.name).as_("count"))
+			.where(
+				(doctype.voucher_type == "Stock Reconciliation")
+				& (doctype.docstatus < 2)
+				& (doctype.is_cancelled == 0)
 			)
+			.groupby(doctype.voucher_detail_no)
+		)
 
-			all_warehouses.extend([x[0] for x in results])
+		data = query.run(as_dict=True)
+		if not data:
+			return
 
-		# remove duplicates
-		all_warehouses = list(set(all_warehouses))
+		for row in data:
+			if row.count != 1:
+				continue
 
-		return sle_query.where(sle.warehouse.isin(all_warehouses))
+			sr_item = frappe.db.get_value(
+				"Stock Reconciliation Item", row.voucher_detail_no, ["current_qty", "qty"], as_dict=True
+			)
+			if sr_item.qty and sr_item.current_qty:
+				self.stock_reco_voucher_wise_count[row.voucher_detail_no] = sr_item.current_qty
