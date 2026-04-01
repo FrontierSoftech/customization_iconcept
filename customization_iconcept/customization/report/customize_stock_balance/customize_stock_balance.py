@@ -250,23 +250,22 @@ class StockBalanceReport:
 			query = query.where(item.name.isin(items))
 
 		if item_groups := self.filters.get("item_group"):
+			if isinstance(item_groups, str):
+				item_groups = [item_groups]
 
-		    if isinstance(item_groups, str):
-		        item_groups = [item_groups]
-		
-		    all_groups = []
-		
-		    for group in item_groups:
-		        all_groups.append(group)
-		
-		        children = get_descendants_of(
-		            "Item Group", group, ignore_permissions=True
-		        ) or []
-		
-		        all_groups.extend(children)
-		
-		    if all_groups:
-		        query = query.where(item.item_group.isin(list(set(all_groups))))
+			all_groups = []
+
+			for group in item_groups:
+				all_groups.append(group)
+
+				children = get_descendants_of(
+					"Item Group", group, ignore_permissions=True
+				) or []
+
+				all_groups.extend(children)
+
+			if all_groups:
+				query = query.where(item.item_group.isin(list(set(all_groups))))
 
 		if warehouses := self.filters.get("warehouse"):
 			if isinstance(warehouses, str):
@@ -467,32 +466,31 @@ class StockBalanceReport:
 		return query
 
 	def apply_items_filters(self, query, item_table) -> str:
-    # ---- Item Group ----
-	    if item_groups := self.filters.get("item_group"):
-	        if isinstance(item_groups, (list, tuple)):
-	            all_groups = []
-	            for group in item_groups:
-	                children = get_descendants_of("Item Group", group, ignore_permissions=True)
-	                all_groups.extend(children)
-	                all_groups.append(group)
-	            query = query.where(item_table.item_group.isin(list(set(all_groups))))
-	        else:
-	            children = get_descendants_of("Item Group", item_groups, ignore_permissions=True)
-	            query = query.where(item_table.item_group.isin([*children, item_groups]))
+		# ---- Item Group ----
+		if item_groups := self.filters.get("item_group"):
+			if isinstance(item_groups, (list, tuple)):
+				all_groups = []
+				for group in item_groups:
+					children = get_descendants_of("Item Group", group, ignore_permissions=True)
+					all_groups.extend(children)
+					all_groups.append(group)
+				query = query.where(item_table.item_group.isin(list(set(all_groups))))
+			else:
+				children = get_descendants_of("Item Group", item_groups, ignore_permissions=True)
+				query = query.where(item_table.item_group.isin([*children, item_groups]))
 
-	    # ---- Item Code ----
-	    if item_codes := self.filters.get("item_code"):
-	        if isinstance(item_codes, (list, tuple)):
-	            query = query.where(item_table.name.isin(item_codes))
-	        else:
-	            query = query.where(item_table.name == item_codes)
+		# ---- Item Code ----
+		if item_codes := self.filters.get("item_code"):
+			if isinstance(item_codes, (list, tuple)):
+				query = query.where(item_table.name.isin(item_codes))
+			else:
+				query = query.where(item_table.name == item_codes)
 
-	    # ---- Brand ----
-	    if brand := self.filters.get("brand"):
-	        query = query.where(item_table.brand == brand)
-	
+		# ---- Brand ----
+		if brand := self.filters.get("brand"):
+			query = query.where(item_table.brand == brand)
 
-	    return query
+		return query
 
 	def apply_date_filters(self, query, sle) -> str:
 		if not self.filters.ignore_closing_balance and self.start_from:
