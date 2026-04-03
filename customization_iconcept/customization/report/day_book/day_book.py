@@ -25,6 +25,7 @@ def execute(filters=None):
         cost_center_filter=filters.get("cost_center"),
         branch_filter=filters.get("branch"),
         status_filter=filters.get("status"),
+        user_filter=filters.get("user"),
         hide_cancelled=filters.get("hide_cancelled")
     )
 
@@ -39,6 +40,7 @@ def get_day_book_data(
     cost_center_filter=None,
     branch_filter=None,
     status_filter=None,
+    user_filter=None,
     hide_cancelled=0
 ):
 
@@ -89,6 +91,8 @@ def get_day_book_data(
 
         if doctype == "Journal Entry" and meta.has_field("voucher_type"):
             fields.append("voucher_type")
+            
+        fields.append("owner")
 
         filters_dict = {
             date_field: ["between", [from_date, to_date]]
@@ -107,6 +111,8 @@ def get_day_book_data(
             if voucher_type_filter and doctype != voucher_type_filter:
                 continue
 
+            if user_filter and doc.owner != user_filter:
+                continue
             # Party filter
             if party_filter and party_field and doc.get(party_field) != party_filter:
                 continue
@@ -173,7 +179,7 @@ def get_day_book_data(
 
     collect_entries("Payment Entry", "posting_date", "party", "paid_amount", "cost_center", "branch")
 
-    collect_entries("Journal Entry", "posting_date", "title", "total_debit", "cost_center", "branch")
+    collect_entries("Journal Entry", "posting_date", "title", "total_debit", "custom_cost_center", "custom_branch")
 
     collect_entries("Purchase Receipt", "posting_date", "supplier", "grand_total", "cost_center", "branch")
 

@@ -14,6 +14,12 @@ frappe.query_reports["Day Book"] = {
             "default": frappe.datetime.get_today(),
             "reqd": 1
         },
+                {
+            "fieldname": "user",
+            "label": __("User"),
+            "fieldtype": "Link",
+            "options": "User"  // Default, will change dynamically based on Party Type
+        },
         {
             "fieldname": "voucher_type",
             "label": __("Voucher Type"),

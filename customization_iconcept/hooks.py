@@ -16,7 +16,8 @@ doc_events = {
         "on_cancel":"customization_iconcept.cancel_sales_invoice.cancel_linked_journal_entry",
         "before_save":[
             "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center",
-            "customization_iconcept.imp_add_in_sale.check_address"
+            "customization_iconcept.imp_add_in_sale.check_address",
+            "customization_iconcept.imp_add_in_sale.mandatory_item_value",
             # "customization_iconcept.set_place_of_supply_according_to_individual.set_place_of_supply"
         ],
         "validate": "customization_iconcept.apple_quarter_auto_set_data.set_apple_quarter_fields",
