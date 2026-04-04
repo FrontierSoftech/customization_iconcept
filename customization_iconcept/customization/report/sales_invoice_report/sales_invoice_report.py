@@ -109,8 +109,11 @@ def execute(filters=None):
             it.custom_item_category AS "Item Category",
             it.custom_item_sub_lob AS "Sub LOB",
             sii.qty AS "Actual Quantity",
+            (sii.qty * sle.incoming_rate) AS "Buying Amount",
             sii.net_rate AS "Basic Rate",
             sii.taxable_value AS "Taxable Amount",
+            (sii.taxable_value - (sii.qty * sle.incoming_rate)) AS "Gross Profit",
+            ((sii.taxable_value - (sii.qty * sle.incoming_rate)) / sii.taxable_value * 100) AS "Gross Profit Percent",
             si.custom_day AS "Day",
             si.custom_month AS "Month",
             si.custom_quarter AS "QTR",
@@ -131,6 +134,10 @@ def execute(filters=None):
             `tabItem` it ON sii.item_code = it.item_code
         LEFT JOIN
             `tabSales Team` st ON si.name = st.parent
+        JOIN `tabStock Ledger Entry` sle 
+             ON sle.item_code = sii.item_code 
+             AND sle.voucher_no = si.name
+             AND sle.warehouse = si.set_warehouse
         WHERE
             si.docstatus = 1
             {conditions_sql}
@@ -177,8 +184,11 @@ def execute(filters=None):
         {"label": "Item Category", "fieldname": "Item Category", "fieldtype": "Link", "options": "Item Category", "width": 120},
         {"label": "Sub LOB", "fieldname": "Sub LOB", "fieldtype": "Link", "options": "Item Sub Lob", "width": 120},
         {"label": "Actual Quantity", "fieldname": "Actual Quantity", "fieldtype": "Float", "width": 100},
+        {"label": "Buying Amount", "fieldname": "Buying Amount", "fieldtype": "Currency", "width": 100},
         {"label": "Basic Rate", "fieldname": "Basic Rate", "fieldtype": "Currency", "width": 100},
         {"label": "Taxable Amount", "fieldname": "Taxable Amount", "fieldtype": "Currency", "width": 100},
+        {"label": "Gross Profit", "fieldname": "Gross Profit", "fieldtype": "Currency", "width": 100},
+        {"label": "Gross Profit Percent", "fieldname": "Gross Profit Percent", "fieldtype": "Percent", "width": 100},
         {"label": "Day", "fieldname": "Day", "fieldtype": "Int", "width": 100},
         {"label": "Month", "fieldname": "Month", "fieldtype": "Int", "width": 100},
         {"label": "QTR", "fieldname": "QTR", "fieldtype": "Int", "width": 100},
