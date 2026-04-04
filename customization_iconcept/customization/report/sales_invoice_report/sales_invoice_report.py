@@ -100,7 +100,6 @@ def execute(filters=None):
             si.name AS "Voucher Number",
             si.posting_date AS "Date",
             c.customer_name AS "Party Name",
-            c.customer_group AS "Party Group",
             si.custom_party_name AS "Mailing Name",
             c.mobile_no AS "Contact No",
             it.brand AS "Brand Name",
@@ -111,29 +110,10 @@ def execute(filters=None):
             it.custom_item_sub_lob AS "Sub LOB",
             sii.qty AS "Actual Quantity",
             sii.net_rate AS "Basic Rate",
-            (
-                CASE
-                    WHEN IFNULL(sii.igst_amount, 0) > 0
-                        THEN sii.net_rate + IFNULL(sii.igst_amount, 0)
-                    ELSE
-                        sii.net_rate + IFNULL(sii.cgst_amount, 0) + IFNULL(sii.sgst_amount, 0)
-                END
-            ) AS "Rate Inclusive",
             sii.taxable_value AS "Taxable Amount",
-            (
-                CASE
-                    WHEN IFNULL(sii.igst_amount, 0) > 0
-                        THEN ((sii.net_rate * sii.qty)+ IFNULL(sii.igst_amount, 0)) 
-                    ELSE
-                        ((sii.net_rate * sii.qty) + IFNULL(sii.cgst_amount, 0) + IFNULL(sii.sgst_amount, 0)) 
-                END
-            ) AS "Amount Inclusive",
-            si.rounded_total AS "Rounded Total",
             si.custom_day AS "Day",
             si.custom_month AS "Month",
             si.custom_quarter AS "QTR",
-            si.billing_address_gstin AS "Bill Type",
-            si.customer AS "Cust Nature",
             st.sales_person AS "Salesman",
             sii.price_list_rate AS "MRP",
             sii.discount_percentage AS "Discount",
@@ -188,7 +168,6 @@ def execute(filters=None):
         {"label": "Voucher Number", "fieldname": "Voucher Number", "fieldtype": "Link", "options": "Sales Invoice", "width": 120},
         {"label": "Date", "fieldname": "Date", "fieldtype": "Date", "width": 100},
         {"label": "Party Name", "fieldname": "Party Name", "fieldtype": "Link", "options": "Customer", "width": 150},
-        {"label": "Party Group", "fieldname": "Party Group", "fieldtype": "Link", "options": "Customer Group", "width": 120},
         {"label": "Mailing Name", "fieldname": "Mailing Name", "fieldtype": "Data", "width": 150},
         {"label": "Contact No", "fieldname": "Contact No", "fieldtype": "Data", "width": 120},
         {"label": "Brand Name", "fieldname": "Brand Name", "fieldtype": "Data", "width": 120},
@@ -199,15 +178,10 @@ def execute(filters=None):
         {"label": "Sub LOB", "fieldname": "Sub LOB", "fieldtype": "Link", "options": "Item Sub Lob", "width": 120},
         {"label": "Actual Quantity", "fieldname": "Actual Quantity", "fieldtype": "Float", "width": 100},
         {"label": "Basic Rate", "fieldname": "Basic Rate", "fieldtype": "Currency", "width": 100},
-        {"label": "Rate Inclusive", "fieldname": "Rate Inclusive", "fieldtype": "Currency", "width": 100},
         {"label": "Taxable Amount", "fieldname": "Taxable Amount", "fieldtype": "Currency", "width": 100},
-        {"label": "Amount Inclusive", "fieldname": "Amount Inclusive", "fieldtype": "Currency", "width": 100},
-        {"label": "Rounded Total", "fieldname": "Rounded Total", "fieldtype": "Currency", "width": 100},
         {"label": "Day", "fieldname": "Day", "fieldtype": "Int", "width": 100},
         {"label": "Month", "fieldname": "Month", "fieldtype": "Int", "width": 100},
         {"label": "QTR", "fieldname": "QTR", "fieldtype": "Int", "width": 100},
-        {"label": "Bill Type", "fieldname": "Bill Type", "fieldtype": "Data", "width": 100},
-        {"label": "Cust Nature", "fieldname": "Cust Nature", "fieldtype": "Data", "width": 100},
         {"label": "Salesman", "fieldname": "Salesman", "fieldtype": "Data", "width": 120},
         {"label": "MRP", "fieldname": "MRP", "fieldtype": "Data", "width": 120},
         {"label": "Discount", "fieldname": "Discount", "fieldtype": "Percent", "width": 80},
@@ -288,9 +262,24 @@ def execute(filters=None):
 #             it.custom_item_sub_lob AS "Sub LOB",
 #             sii.qty AS "Actual Quantity",
 #             sii.net_rate AS "Basic Rate",
-#             sii.rate AS "Rate Inclusive",
+#                        (
+#                 CASE
+#                     WHEN IFNULL(sii.igst_amount, 0) > 0
+#                         THEN sii.net_rate + IFNULL(sii.igst_amount, 0)
+#                     ELSE
+#                         sii.net_rate + IFNULL(sii.cgst_amount, 0) + IFNULL(sii.sgst_amount, 0)
+#                 END
+#             ) AS "Rate Inclusive",
 #             sii.base_net_amount AS "Taxable Amount",
-#             sii.base_amount AS "Amount Inclusive",
+#                       (
+#                 CASE
+#                     WHEN IFNULL(sii.igst_amount, 0) > 0
+#                         THEN ((sii.net_rate * sii.qty)+ IFNULL(sii.igst_amount, 0)) 
+#                     ELSE
+#                         ((sii.net_rate * sii.qty) + IFNULL(sii.cgst_amount, 0) + IFNULL(sii.sgst_amount, 0)) 
+#                 END
+#             ) AS "Amount Inclusive",
+#             si.rounded_total AS "Rounded Total",
 #             si.base_grand_total AS "Company Final",
 #             si.custom_day AS "Day",
 #             si.custom_month AS "Month",
