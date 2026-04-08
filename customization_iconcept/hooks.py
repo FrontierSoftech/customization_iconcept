@@ -56,17 +56,9 @@ doc_events = {
         "before_insert": "customization_iconcept.naming_series.naming_series_payment_entry",
         "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"
     },
-    # "*": {
-    #     "before_save": "customization_iconcept.set_branch_and_cost_center.set_branch_and_cost_center"
-    # }
-    # "POS Invoice": {
-    #     "before_save": "customization_iconcept.set_branch.before_save",
-    #     "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
-    # },
-    # "Sales Invoice": {
-    #     "before_save": "customization_iconcept.set_branch.before_save",
-    #     "on_submit": "customization_iconcept.pos_entry_create_journal.create_journal_entry_for_pos"
-    # }
+    "POS Opening Entry": {
+        "after_insert": "customization_iconcept.pos_opening.notify_store_managers"
+    }
 }
 
 after_migrate = "customization_iconcept.install.after_install"

@@ -115,6 +115,7 @@ def execute(filters=None):
             (sii.taxable_value - (sii.qty * sle.incoming_rate)) AS "Gross Profit",
             ((sii.taxable_value - (sii.qty * sle.incoming_rate)) / sii.taxable_value * 100) AS "Gross Profit Percent",
             si.custom_day AS "Day",
+            si.custom_week AS "Week",
             si.custom_month AS "Month",
             si.custom_quarter AS "QTR",
             st.sales_person AS "Salesman",
@@ -140,6 +141,7 @@ def execute(filters=None):
              AND sle.warehouse = si.set_warehouse
         WHERE
             si.docstatus = 1
+            AND c.customer_group NOT IN ('Internal Customer', 'Company Associates')
             {conditions_sql}
         ORDER BY si.posting_date DESC
     """
@@ -189,9 +191,10 @@ def execute(filters=None):
         {"label": "Taxable Amount", "fieldname": "Taxable Amount", "fieldtype": "Currency", "width": 100},
         {"label": "Gross Profit", "fieldname": "Gross Profit", "fieldtype": "Currency", "width": 100},
         {"label": "Gross Profit Percent", "fieldname": "Gross Profit Percent", "fieldtype": "Percent", "width": 100},
-        {"label": "Day", "fieldname": "Day", "fieldtype": "Int", "width": 100},
-        {"label": "Month", "fieldname": "Month", "fieldtype": "Int", "width": 100},
-        {"label": "QTR", "fieldname": "QTR", "fieldtype": "Int", "width": 100},
+        {"label": "Day", "fieldname": "Day", "fieldtype": "Data", "width": 100},
+        {"label": "Week", "fieldname": "Week", "fieldtype": "Data", "width": 100},
+        {"label": "Month", "fieldname": "Month", "fieldtype": "Data", "width": 100},
+        {"label": "QTR", "fieldname": "QTR", "fieldtype": "Data", "width": 100},
         {"label": "Salesman", "fieldname": "Salesman", "fieldtype": "Data", "width": 120},
         {"label": "MRP", "fieldname": "MRP", "fieldtype": "Data", "width": 120},
         {"label": "Discount", "fieldname": "Discount", "fieldtype": "Percent", "width": 80},
