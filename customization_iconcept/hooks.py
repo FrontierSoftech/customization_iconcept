@@ -92,6 +92,13 @@ doctype_js = {
 
 }
 
+scheduler_events = {
+    "cron": {
+        "59 23 * * *": [
+            "customization_iconcept.pos_opening.notify_store_managers_for_open",
+        ]
+    }
+}
 # app_include_js = ["/assets/customization_iconcept/js/customize_stock_balance.js",
 #                   "/assets/customization_iconcept/js/customize_stock_ageings.js"]
 
