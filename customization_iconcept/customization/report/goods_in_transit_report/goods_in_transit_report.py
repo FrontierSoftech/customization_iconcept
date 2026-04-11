@@ -212,6 +212,170 @@
 
 #     return result
 
+# import frappe
+# from frappe.utils import flt
+
+
+# def execute(filters=None):
+#     filters = frappe._dict(filters or {})
+
+#     filters.git_pattern = filters.get("git_pattern") or "Goods In Transit%"
+#     filters.from_date = filters.get("from_date")
+#     filters.to_date = filters.get("to_date")
+
+#     columns = get_columns()
+#     data = get_data(filters)
+
+#     return columns, data
+
+
+# # ---------------- COLUMNS ----------------
+# def get_columns():
+#     return [
+#         {"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 100},
+#         {"label": "Posting Time", "fieldname": "posting_time", "fieldtype": "Time", "width": 90},
+#         {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
+#         {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 120},
+#         {"label": "Branch Warehouse", "fieldname": "custom_branch_warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 120},
+#         {"label": "Item Code", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 130},
+#         {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 150},
+#         {"label": "Item Group", "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
+#         {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Link", "options": "Item Category", "width": 130},
+#         {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Link", "options": "Item Sub Lob", "width": 130},
+#         {"label": "In Qty", "fieldname": "in_qty", "fieldtype": "Float", "width": 100},
+#         {"label": "Out Qty", "fieldname": "out_qty", "fieldtype": "Float", "width": 100},
+#         {"label": "Balance Qty", "fieldname": "balance_qty", "fieldtype": "Float", "width": 120},
+#         {"label": "Voucher Type", "fieldname": "voucher_type", "fieldtype": "Data", "width": 120},
+#         {"label": "Voucher No", "fieldname": "voucher_no", "fieldtype": "Dynamic Link", "options": "voucher_type", "width": 150},
+#     ]
+
+
+# # ---------------- DATA ----------------
+# def get_data(filters):
+
+#     conditions = ""
+#     values = {
+#         "git_pattern": filters.git_pattern,
+#     }
+
+#     # ---------------- DATE FILTER ----------------
+#     if filters.from_date and filters.to_date:
+#         conditions += " AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s"
+#         values.update({
+#             "from_date": filters.from_date,
+#             "to_date": filters.to_date
+#         })
+
+#     # ---------------- MULTISELECT FILTERS ----------------
+
+#     if filters.company:
+#         conditions += " AND w.company IN %(company)s"
+#         values["company"] = tuple(filters.company)
+
+#     if filters.item_code:
+#         conditions += " AND sle.item_code IN %(item_code)s"
+#         values["item_code"] = tuple(filters.item_code)
+
+#     if filters.item_group:
+#         conditions += " AND i.item_group IN %(item_group)s"
+#         values["item_group"] = tuple(filters.item_group)
+
+#     if filters.custom_item_category:
+#         conditions += " AND i.custom_item_category IN %(custom_item_category)s"
+#         values["custom_item_category"] = tuple(filters.custom_item_category)
+
+#     if filters.custom_item_sub_lob:
+#         conditions += " AND i.custom_item_sub_lob IN %(custom_item_sub_lob)s"
+#         values["custom_item_sub_lob"] = tuple(filters.custom_item_sub_lob)
+
+#     if filters.voucher_type:
+#         conditions += " AND sle.voucher_type IN %(voucher_type)s"
+#         values["voucher_type"] = tuple(filters.voucher_type)
+
+#     if filters.voucher_no:
+#         conditions += " AND sle.voucher_no IN %(voucher_no)s"
+#         values["voucher_no"] = tuple(filters.voucher_no)
+
+#     # ---------------- SLE DATA ----------------
+#     sle_data = frappe.db.sql(f"""
+#         SELECT
+#             sle.item_code,
+#             sle.warehouse,
+#             sle.posting_date,
+#             sle.posting_time,
+#             sle.actual_qty,
+#             sle.voucher_type,
+#             sle.voucher_no,
+#             w.company,
+#             i.item_name,
+#             i.item_group,
+#             i.custom_item_category,
+#             i.custom_item_sub_lob
+#         FROM `tabStock Ledger Entry` sle
+#         LEFT JOIN `tabWarehouse` w ON w.name = sle.warehouse
+#         LEFT JOIN `tabItem` i ON i.name = sle.item_code
+#         WHERE
+#             sle.is_cancelled = 0
+#             AND sle.warehouse LIKE %(git_pattern)s
+#             {conditions}
+#         ORDER BY
+#             sle.item_code,
+#             sle.warehouse,
+#             sle.posting_date,
+#             sle.posting_time
+#     """, values, as_dict=1)
+
+#     # ---------------- SALES INVOICE MAP ----------------
+#     si_map = frappe._dict()
+
+#     si_data = frappe.db.sql("""
+#         SELECT
+#             name,
+#             custom_branch_warehouse
+#         FROM `tabSales Invoice`
+#         WHERE docstatus = 1
+#     """, as_dict=1)
+
+#     for si in si_data:
+#         si_map[si.name] = si.custom_branch_warehouse
+
+#     # ---------------- RUNNING BALANCE ----------------
+#     balance_map = {}
+#     result = []
+
+#     for row in sle_data:
+#         key = (row.item_code, row.warehouse)
+
+#         balance_map.setdefault(key, 0)
+#         balance_map[key] += flt(row.actual_qty)
+
+#         new_row = {
+#             "posting_date": row.posting_date,
+#             "posting_time": row.posting_time,
+#             "company": row.company,
+#             "warehouse": row.warehouse,
+#             "item_code": row.item_code,
+#             "item_name": row.item_name,
+#             "item_group": row.item_group,
+#             "custom_item_category": row.custom_item_category,
+#             "custom_item_sub_lob": row.custom_item_sub_lob,
+#             "in_qty": row.actual_qty if row.actual_qty > 0 else 0,
+#             "out_qty": abs(row.actual_qty) if row.actual_qty < 0 else 0,
+#             "balance_qty": balance_map[key],
+#             "voucher_type": row.voucher_type,
+#             "voucher_no": row.voucher_no,
+#         }
+
+#         # Branch Warehouse only for Sales Invoice
+#         if row.voucher_type == "Sales Invoice":
+#             new_row["custom_branch_warehouse"] = si_map.get(row.voucher_no)
+#         else:
+#             new_row["custom_branch_warehouse"] = None
+
+#         result.append(new_row)
+
+#     return result
+
 import frappe
 from frappe.utils import flt
 
@@ -232,8 +396,8 @@ def execute(filters=None):
 # ---------------- COLUMNS ----------------
 def get_columns():
     return [
-        {"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 100},
-        {"label": "Posting Time", "fieldname": "posting_time", "fieldtype": "Time", "width": 90},
+        # {"label": "Posting Date", "fieldname": "posting_date", "fieldtype": "Date", "width": 100},
+        # {"label": "Posting Time", "fieldname": "posting_time", "fieldtype": "Time", "width": 90},
         {"label": "Company", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 120},
         {"label": "Warehouse", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 120},
         {"label": "Branch Warehouse", "fieldname": "custom_branch_warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 120},
@@ -242,11 +406,9 @@ def get_columns():
         {"label": "Item Group", "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
         {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Link", "options": "Item Category", "width": 130},
         {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Link", "options": "Item Sub Lob", "width": 130},
-        {"label": "In Qty", "fieldname": "in_qty", "fieldtype": "Float", "width": 100},
-        {"label": "Out Qty", "fieldname": "out_qty", "fieldtype": "Float", "width": 100},
-        {"label": "Balance Qty", "fieldname": "balance_qty", "fieldtype": "Float", "width": 120},
-        {"label": "Voucher Type", "fieldname": "voucher_type", "fieldtype": "Data", "width": 120},
-        {"label": "Voucher No", "fieldname": "voucher_no", "fieldtype": "Dynamic Link", "options": "voucher_type", "width": 150},
+        {"label": "Balance Qty", "fieldname": "out_qty", "fieldtype": "Float", "width": 120},
+        # {"label": "Balance Qty", "fieldname": "balance_qty", "fieldtype": "Float", "width": 120},
+        # {"label": "Voucher No", "fieldname": "voucher_no", "fieldtype": "Dynamic Link", "options": "voucher_type", "width": 150},
     ]
 
 
@@ -258,7 +420,7 @@ def get_data(filters):
         "git_pattern": filters.git_pattern,
     }
 
-    # ---------------- DATE FILTER ----------------
+    # DATE FILTER
     if filters.from_date and filters.to_date:
         conditions += " AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s"
         values.update({
@@ -266,37 +428,46 @@ def get_data(filters):
             "to_date": filters.to_date
         })
 
-    # ---------------- MULTISELECT FILTERS ----------------
-
+    # MULTI FILTERS
     if filters.company:
         conditions += " AND w.company IN %(company)s"
         values["company"] = tuple(filters.company)
-
     if filters.item_code:
         conditions += " AND sle.item_code IN %(item_code)s"
         values["item_code"] = tuple(filters.item_code)
-
     if filters.item_group:
         conditions += " AND i.item_group IN %(item_group)s"
         values["item_group"] = tuple(filters.item_group)
-
     if filters.custom_item_category:
         conditions += " AND i.custom_item_category IN %(custom_item_category)s"
         values["custom_item_category"] = tuple(filters.custom_item_category)
-
     if filters.custom_item_sub_lob:
         conditions += " AND i.custom_item_sub_lob IN %(custom_item_sub_lob)s"
         values["custom_item_sub_lob"] = tuple(filters.custom_item_sub_lob)
 
-    if filters.voucher_type:
-        conditions += " AND sle.voucher_type IN %(voucher_type)s"
-        values["voucher_type"] = tuple(filters.voucher_type)
+    # ---------------- VALID SALES INVOICE ----------------
+    si_map = frappe._dict()
 
-    if filters.voucher_no:
-        conditions += " AND sle.voucher_no IN %(voucher_no)s"
-        values["voucher_no"] = tuple(filters.voucher_no)
+    si_data = frappe.db.sql("""
+        SELECT
+            si.name,
+            si.custom_branch_warehouse
+        FROM `tabSales Invoice` si
+        LEFT JOIN `tabPurchase Invoice` pi
+            ON pi.inter_company_invoice_reference = si.name
+        WHERE
+            si.docstatus = 1
+            AND si.is_internal_customer = 1
+            AND pi.name IS NULL
+    """, as_dict=1)
 
-    # ---------------- SLE DATA ----------------
+    valid_si_set = set()
+
+    for si in si_data:
+        si_map[si.name] = si.custom_branch_warehouse
+        valid_si_set.add(si.name)
+
+    # ---------------- SLE DATA (ONLY SALES INVOICE) ----------------
     sle_data = frappe.db.sql(f"""
         SELECT
             sle.item_code,
@@ -304,7 +475,6 @@ def get_data(filters):
             sle.posting_date,
             sle.posting_time,
             sle.actual_qty,
-            sle.voucher_type,
             sle.voucher_no,
             w.company,
             i.item_name,
@@ -316,6 +486,7 @@ def get_data(filters):
         LEFT JOIN `tabItem` i ON i.name = sle.item_code
         WHERE
             sle.is_cancelled = 0
+            AND sle.voucher_type = 'Sales Invoice'
             AND sle.warehouse LIKE %(git_pattern)s
             {conditions}
         ORDER BY
@@ -325,53 +496,41 @@ def get_data(filters):
             sle.posting_time
     """, values, as_dict=1)
 
-    # ---------------- SALES INVOICE MAP ----------------
-    si_map = frappe._dict()
-
-    si_data = frappe.db.sql("""
-        SELECT
-            name,
-            custom_branch_warehouse
-        FROM `tabSales Invoice`
-        WHERE docstatus = 1
-    """, as_dict=1)
-
-    for si in si_data:
-        si_map[si.name] = si.custom_branch_warehouse
-
     # ---------------- RUNNING BALANCE ----------------
     balance_map = {}
     result = []
 
     for row in sle_data:
+
+        # ONLY VALID SI (NO PI LINKED)
+        if row.voucher_no not in valid_si_set:
+            continue
+        
+        branch_wh = si_map.get(row.voucher_no)
+        
+        if filters.custom_branch_warehouse:
+            if branch_wh not in filters.custom_branch_warehouse:
+                continue
+
         key = (row.item_code, row.warehouse)
 
         balance_map.setdefault(key, 0)
         balance_map[key] += flt(row.actual_qty)
 
-        new_row = {
+        result.append({
             "posting_date": row.posting_date,
             "posting_time": row.posting_time,
             "company": row.company,
             "warehouse": row.warehouse,
+            "custom_branch_warehouse": si_map.get(row.voucher_no),
             "item_code": row.item_code,
             "item_name": row.item_name,
             "item_group": row.item_group,
             "custom_item_category": row.custom_item_category,
             "custom_item_sub_lob": row.custom_item_sub_lob,
-            "in_qty": row.actual_qty if row.actual_qty > 0 else 0,
-            "out_qty": abs(row.actual_qty) if row.actual_qty < 0 else 0,
+            "out_qty": abs(row.actual_qty),
             "balance_qty": balance_map[key],
-            "voucher_type": row.voucher_type,
             "voucher_no": row.voucher_no,
-        }
-
-        # Branch Warehouse only for Sales Invoice
-        if row.voucher_type == "Sales Invoice":
-            new_row["custom_branch_warehouse"] = si_map.get(row.voucher_no)
-        else:
-            new_row["custom_branch_warehouse"] = None
-
-        result.append(new_row)
+        })
 
     return result

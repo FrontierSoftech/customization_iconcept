@@ -161,147 +161,147 @@
 
 
 
-import frappe
-from frappe.utils import flt
+# import frappe
+# from frappe.utils import flt
 
 
-def execute(filters=None):
-    columns = get_columns()
-    data = get_data(filters)
+# def execute(filters=None):
+#     columns = get_columns()
+#     data = get_data(filters)
 
-    return columns, data
-
-
-def get_columns():
-    return [
-        {"label": "Company Name", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 150},
-        {"label": "Godown", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 150},
-        {"label": "Item Group", "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
-        {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Link","options": "Item Category", "width": 130},
-        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 150},
-        {"label": "Part Number", "fieldname": "item_code", "fieldtype": "Link", "options": "Item","width": 130},
-        {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Link", "options": "Item Sub Lob", "width": 130},
-        {"label": "Stock Status", "fieldname": "stock_status", "fieldtype": "Data", "width": 130},
-        {"label": "Qty", "fieldname": "qty", "fieldtype": "Float", "width": 120},
-    ]
+#     return columns, data
 
 
-def get_conditions(filters):
-    conditions = ""
+# def get_columns():
+#     return [
+#         {"label": "Company Name", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 150},
+#         {"label": "Godown", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 150},
+#         {"label": "Item Group", "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
+#         {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Link","options": "Item Category", "width": 130},
+#         {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 150},
+#         {"label": "Part Number", "fieldname": "item_code", "fieldtype": "Link", "options": "Item","width": 130},
+#         {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Link", "options": "Item Sub Lob", "width": 130},
+#         {"label": "Stock Status", "fieldname": "stock_status", "fieldtype": "Data", "width": 130},
+#         {"label": "Qty", "fieldname": "qty", "fieldtype": "Float", "width": 120},
+#     ]
 
-    if filters.get("company"):
-        conditions += " AND w.company = %(company)s"
+
+# def get_conditions(filters):
+#     conditions = ""
+
+#     if filters.get("company"):
+#         conditions += " AND w.company = %(company)s"
     
-    if filters.get("warehouse"):
-        conditions += " AND b.warehouse IN %(warehouse)s"
+#     if filters.get("warehouse"):
+#         conditions += " AND b.warehouse IN %(warehouse)s"
 
-    if filters.get("item_group"):
-        conditions += " AND i.item_group IN %(item_group)s"
+#     if filters.get("item_group"):
+#         conditions += " AND i.item_group IN %(item_group)s"
 
-    if filters.get("item_code"):
-        conditions += " AND b.item_code IN %(item_code)s"
+#     if filters.get("item_code"):
+#         conditions += " AND b.item_code IN %(item_code)s"
 
-    if filters.get("item_category"):
-        conditions += " AND i.custom_item_category IN %(item_category)s"
+#     if filters.get("item_category"):
+#         conditions += " AND i.custom_item_category IN %(item_category)s"
 
-    if filters.get("sub_lob"):
-        conditions += " AND i.custom_item_sub_lob IN %(sub_lob)s"
+#     if filters.get("sub_lob"):
+#         conditions += " AND i.custom_item_sub_lob IN %(sub_lob)s"
 
-    # if filters.get("warehouse"):
-    #     conditions += " AND b.warehouse = %(warehouse)s"
+#     # if filters.get("warehouse"):
+#     #     conditions += " AND b.warehouse = %(warehouse)s"
 
-    # if filters.get("item_group"):
-    #     conditions += " AND i.item_group = %(item_group)s"
+#     # if filters.get("item_group"):
+#     #     conditions += " AND i.item_group = %(item_group)s"
 
-    # if filters.get("item_code"):
-    #     conditions += " AND b.item_code = %(item_code)s"
+#     # if filters.get("item_code"):
+#     #     conditions += " AND b.item_code = %(item_code)s"
 
-    # if filters.get("item_category"):
-    #     conditions += " AND i.custom_item_category = %(item_category)s"
+#     # if filters.get("item_category"):
+#     #     conditions += " AND i.custom_item_category = %(item_category)s"
 
-    # if filters.get("sub_lob"):
-    #     conditions += " AND i.custom_item_sub_lob = %(sub_lob)s"
+#     # if filters.get("sub_lob"):
+#     #     conditions += " AND i.custom_item_sub_lob = %(sub_lob)s"
 
-    return conditions
+#     return conditions
 
 
-def get_data(filters):
+# def get_data(filters):
 
-    for key in ["warehouse", "item_group", "item_code", "item_category", "sub_lob"]:
-        if filters.get(key):
-            filters[key] = tuple(filters.get(key))
+#     for key in ["warehouse", "item_group", "item_code", "item_category", "sub_lob"]:
+#         if filters.get(key):
+#             filters[key] = tuple(filters.get(key))
 
-    conditions = get_conditions(filters)
+#     conditions = get_conditions(filters)
 
-    stock_data = frappe.db.sql(f"""
-        SELECT
-            b.item_code,
-            b.warehouse,
-            b.actual_qty,
-            w.company,
-            i.item_group,
-            i.custom_item_category,
-            i.item_name,
-            i.custom_item_sub_lob
-        FROM `tabBin` b
-        LEFT JOIN `tabWarehouse` w ON w.name = b.warehouse
-        LEFT JOIN `tabCompany` c ON c.name = w.company
-        LEFT JOIN `tabItem` i ON i.name = b.item_code              
-        WHERE 1=1 {conditions} AND b.warehouse != CONCAT('Goods In Transit - ', c.abbr)
-    """, filters, as_dict=1)
+#     stock_data = frappe.db.sql(f"""
+#         SELECT
+#             b.item_code,
+#             b.warehouse,
+#             b.actual_qty,
+#             w.company,
+#             i.item_group,
+#             i.custom_item_category,
+#             i.item_name,
+#             i.custom_item_sub_lob
+#         FROM `tabBin` b
+#         LEFT JOIN `tabWarehouse` w ON w.name = b.warehouse
+#         LEFT JOIN `tabCompany` c ON c.name = w.company
+#         LEFT JOIN `tabItem` i ON i.name = b.item_code              
+#         WHERE 1=1 {conditions} AND b.warehouse != CONCAT('Goods In Transit - ', c.abbr)
+#     """, filters, as_dict=1)
 
-    pending_data = frappe.db.sql("""
-        SELECT
-            poi.item_code,
-            po.set_warehouse AS warehouse,
-            SUM(poi.qty - poi.received_qty) AS pending_qty
-        FROM `tabPurchase Order Item` poi
-        JOIN `tabPurchase Order` po ON poi.parent = po.name
-        WHERE po.docstatus = 1
-        GROUP BY poi.item_code, po.set_warehouse
-    """, as_dict=1)
+#     pending_data = frappe.db.sql("""
+#         SELECT
+#             poi.item_code,
+#             po.set_warehouse AS warehouse,
+#             SUM(poi.qty - poi.received_qty) AS pending_qty
+#         FROM `tabPurchase Order Item` poi
+#         JOIN `tabPurchase Order` po ON poi.parent = po.name
+#         WHERE po.docstatus = 1
+#         GROUP BY poi.item_code, po.set_warehouse
+#     """, as_dict=1)
 
-    pending_map = {(d.item_code, d.warehouse): d.pending_qty for d in pending_data}
+#     pending_map = {(d.item_code, d.warehouse): d.pending_qty for d in pending_data}
 
-    data = []
+#     data = []
 
-    for row in stock_data:
+#     for row in stock_data:
 
-        key = (row.item_code, row.warehouse)
-        pending_qty = flt(pending_map.get(key, 0))
-        actual_qty = flt(row.actual_qty)
+#         key = (row.item_code, row.warehouse)
+#         pending_qty = flt(pending_map.get(key, 0))
+#         actual_qty = flt(row.actual_qty)
 
-        actual_row = {
-            "company": row.company,
-            "warehouse": row.warehouse,
-            "item_group": row.item_group,
-            "custom_item_category": row.custom_item_category,
-            "item_code": row.item_code,
-            "item_name": row.item_name,
-            "custom_item_sub_lob": row.custom_item_sub_lob,
-            "stock_status": "Actual Qty",
-            "qty": flt(row.actual_qty)
-        }
+#         actual_row = {
+#             "company": row.company,
+#             "warehouse": row.warehouse,
+#             "item_group": row.item_group,
+#             "custom_item_category": row.custom_item_category,
+#             "item_code": row.item_code,
+#             "item_name": row.item_name,
+#             "custom_item_sub_lob": row.custom_item_sub_lob,
+#             "stock_status": "Actual Qty",
+#             "qty": flt(row.actual_qty)
+#         }
 
-        pending_row = {
-            "company": row.company,
-            "warehouse": row.warehouse,
-            "item_group": row.item_group,
-            "custom_item_category": row.custom_item_category,
-            "item_code": row.item_code,
-            "item_name": row.item_name,
-            "custom_item_sub_lob": row.custom_item_sub_lob,
-            "stock_status": "In-Transit",
-            "qty": flt(pending_map.get(key, 0))
-        }
+#         pending_row = {
+#             "company": row.company,
+#             "warehouse": row.warehouse,
+#             "item_group": row.item_group,
+#             "custom_item_category": row.custom_item_category,
+#             "item_code": row.item_code,
+#             "item_name": row.item_name,
+#             "custom_item_sub_lob": row.custom_item_sub_lob,
+#             "stock_status": "In-Transit",
+#             "qty": flt(pending_map.get(key, 0))
+#         }
 
-        if (not filters.get("stock_status") or filters.get("stock_status") == "Actual Qty") and actual_qty != 0:
-            data.append(actual_row)
+#         if (not filters.get("stock_status") or filters.get("stock_status") == "Actual Qty") and actual_qty != 0:
+#             data.append(actual_row)
 
-        if (not filters.get("stock_status") or filters.get("stock_status") == "In-Transit") and pending_qty != 0:
-            data.append(pending_row)
+#         if (not filters.get("stock_status") or filters.get("stock_status") == "In-Transit") and pending_qty != 0:
+#             data.append(pending_row)
 
-    return data
+#     return data
 
 
 
@@ -477,3 +477,123 @@ def get_data(filters):
     
 
 #     return data
+
+import frappe
+from frappe.utils import flt
+
+
+def execute(filters=None):
+    columns = get_columns()
+    data = get_data(filters)
+
+    return columns, data
+
+
+def get_columns():
+    return [
+        {"label": "Company Name", "fieldname": "company", "fieldtype": "Link", "options": "Company", "width": 150},
+        {"label": "Godown", "fieldname": "warehouse", "fieldtype": "Link", "options": "Warehouse", "width": 150},
+        {"label": "Item Group", "fieldname": "item_group", "fieldtype": "Link", "options": "Item Group", "width": 130},
+        {"label": "Item Category", "fieldname": "custom_item_category", "fieldtype": "Link", "options": "Item Category", "width": 130},
+        {"label": "Item Name", "fieldname": "item_name", "fieldtype": "Data", "width": 150},
+        {"label": "Part Number", "fieldname": "item_code", "fieldtype": "Link", "options": "Item", "width": 130},
+        {"label": "Sub LOB", "fieldname": "custom_item_sub_lob", "fieldtype": "Link", "options": "Item Sub Lob", "width": 130},
+        {"label": "Stock Status", "fieldname": "stock_status", "fieldtype": "Data", "width": 130},
+        {"label": "Qty", "fieldname": "qty", "fieldtype": "Float", "width": 120},
+    ]
+
+
+def get_conditions(filters):
+    conditions = ""
+
+    if filters.get("company"):
+        conditions += " AND w.company = %(company)s"
+    
+    if filters.get("warehouse"):
+        conditions += " AND b.warehouse IN %(warehouse)s"
+
+    if filters.get("item_group"):
+        conditions += " AND i.item_group IN %(item_group)s"
+
+    if filters.get("item_code"):
+        conditions += " AND b.item_code IN %(item_code)s"
+
+    if filters.get("item_category"):
+        conditions += " AND i.custom_item_category IN %(item_category)s"
+
+    if filters.get("sub_lob"):
+        conditions += " AND i.custom_item_sub_lob IN %(sub_lob)s"
+
+    return conditions
+
+
+def get_data(filters):
+
+    if not filters:
+        filters = {}
+
+    # Convert list filters to tuple for SQL IN
+    for key in ["warehouse", "item_group", "item_code", "item_category", "sub_lob"]:
+        if filters.get(key):
+            filters[key] = tuple(filters.get(key))
+
+    conditions = get_conditions(filters)
+
+    stock_data = frappe.db.sql(f"""
+        SELECT
+            b.item_code,
+            b.warehouse,
+            b.actual_qty,
+            b.ordered_qty,
+            w.company,
+            i.item_group,
+            i.custom_item_category,
+            i.item_name,
+            i.custom_item_sub_lob
+        FROM `tabBin` b
+        LEFT JOIN `tabWarehouse` w ON w.name = b.warehouse
+        LEFT JOIN `tabCompany` c ON c.name = w.company
+        LEFT JOIN `tabItem` i ON i.name = b.item_code              
+        WHERE 1=1 {conditions}
+        AND b.warehouse != CONCAT('Goods In Transit - ', c.abbr)
+    """, filters, as_dict=1)
+
+    data = []
+
+    for row in stock_data:
+
+        actual_qty = flt(row.actual_qty)
+        in_transit_qty = flt(row.ordered_qty)
+
+        actual_row = {
+            "company": row.company,
+            "warehouse": row.warehouse,
+            "item_group": row.item_group,
+            "custom_item_category": row.custom_item_category,
+            "item_code": row.item_code,
+            "item_name": row.item_name,
+            "custom_item_sub_lob": row.custom_item_sub_lob,
+            "stock_status": "Actual Qty",
+            "qty": actual_qty
+        }
+
+        in_transit_row = {
+            "company": row.company,
+            "warehouse": row.warehouse,
+            "item_group": row.item_group,
+            "custom_item_category": row.custom_item_category,
+            "item_code": row.item_code,
+            "item_name": row.item_name,
+            "custom_item_sub_lob": row.custom_item_sub_lob,
+            "stock_status": "In-Transit",
+            "qty": in_transit_qty
+        }
+
+        # Append based on filter
+        if (not filters.get("stock_status") or filters.get("stock_status") == "Actual Qty") and actual_qty != 0:
+            data.append(actual_row)
+
+        if (not filters.get("stock_status") or filters.get("stock_status") == "In-Transit") and in_transit_qty != 0:
+            data.append(in_transit_row)
+
+    return data
