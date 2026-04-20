@@ -170,6 +170,12 @@ def execute(filters=None):
         for cust_name in customer_map:
             row[cust_name] = sum(p["amount"] for p in payments if frappe.db.get_value("Customer", p["finance_lender"], "customer_group") == cust_name)
 
+    # Replace None/empty with "N/A"
+    for row in data:
+        for key, val in row.items():
+            if val is None or val == "":
+                row[key] = "N/A"
+
     # --- DEFINE COLUMNS ---
     columns = [
         {"label": "Company Name", "fieldname": "Company Name", "fieldtype": "Link", "options": "Company", "width": 150},
@@ -178,7 +184,7 @@ def execute(filters=None):
         {"label": "Date", "fieldname": "Date", "fieldtype": "Date", "width": 100},
         {"label": "Party Name", "fieldname": "Party Name", "fieldtype": "Link", "options": "Customer", "width": 150},
         {"label": "Mailing Name", "fieldname": "Mailing Name", "fieldtype": "Data", "width": 150},
-        {"label": "Contact No", "fieldname": "Contact No", "fieldtype": "Data", "width": 120},
+        # {"label": "Contact No", "fieldname": "Contact No", "fieldtype": "Data", "width": 120},
         {"label": "Brand Name", "fieldname": "Brand Name", "fieldtype": "Data", "width": 120},
         {"label": "Item Name", "fieldname": "Item Name", "fieldtype": "Data", "width": 150},
         {"label": "Item Part No", "fieldname": "Item Part No", "fieldtype": "Link", "options": "Item", "width": 120},
@@ -197,20 +203,20 @@ def execute(filters=None):
         {"label": "QTR", "fieldname": "QTR", "fieldtype": "Data", "width": 100},
         {"label": "Salesman", "fieldname": "Salesman", "fieldtype": "Data", "width": 120},
         {"label": "MRP", "fieldname": "MRP", "fieldtype": "Data", "width": 120},
-        {"label": "Discount", "fieldname": "Discount", "fieldtype": "Percent", "width": 80},
-        {"label": "Need Purchase Price", "fieldname": "Need Purchase Price", "fieldtype": "Currency", "width": 150},
+        # {"label": "Discount", "fieldname": "Discount", "fieldtype": "Percent", "width": 80},
+        # {"label": "Need Purchase Price", "fieldname": "Need Purchase Price", "fieldtype": "Currency", "width": 150},
         {"label": "Profession of a customer", "fieldname": "Profession of a customer", "fieldtype": "Data", "width": 100},
         {"label": "GST Number", "fieldname": "GST Number", "fieldtype": "Data", "width": 120},
         {"label": "GST Type", "fieldname": "GST Type", "fieldtype": "Data", "width": 100},
     ]
-    columns.append({
-    "label": "Advance",
-    "fieldname": "Advance",
-    "fieldtype": "Currency",
-    "width": 120
-    })
+    # columns.append({
+    # "label": "Advance",
+    # "fieldname": "Advance",
+    # "fieldtype": "Currency",
+    # "width": 120
+    # })
     # Add dynamic columns after GST Type
-    columns.extend(account_columns)
+    # columns.extend(account_columns)
     columns.extend(customer_columns)
 
     return columns, data
