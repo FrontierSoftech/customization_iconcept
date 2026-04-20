@@ -1,5 +1,5 @@
 import frappe
-
+@frappe.whitelist()
 def notify_store_managers(doc, method=None):
     if not doc.pos_profile:
         return
@@ -43,7 +43,7 @@ def notify_store_managers(doc, method=None):
         message=message
     )
     
-    
+@frappe.whitelist()
 def notify_store_managers_for_open(method=None):
     # 🔹 Fetch all open POS entries
     pos_entries = frappe.get_all(
