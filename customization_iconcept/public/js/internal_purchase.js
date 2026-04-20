@@ -4,17 +4,7 @@ frappe.ui.form.on("Purchase Invoice", {
 
 		frm.add_custom_button(
 			__("Internal Transfer"),
-			async () => {
-				// Fetch already transferred Sales Invoices
-				const r = await frappe.call({
-					method: "customization_iconcept.internal_purchase.get_sales_invoices_already_transferred",
-					args: {
-						company: frm.doc.company,
-					},
-				});
-				
-				const excluded_sales_invoices = r.message || [];
-
+			() => {
 				erpnext.utils.map_current_doc({
 					method: "customization_iconcept.internal_purchase.make_internal_transfer_sales_invoice",
 					source_doctype: "Sales Invoice",
@@ -25,13 +15,14 @@ frappe.ui.form.on("Purchase Invoice", {
 							posting_date: undefined,
 							company: frm.doc.company,
 					},
-					get_query_filters: {
-						docstatus: 1,
-						is_internal_customer: 1,
-						is_return: 0,
-						company: frm.doc.company,
-						name: ["not in", excluded_sales_invoices || []],
-					},
+					get_query: () => ({
+						query: "customization_iconcept.internal_purchase.query_available_internal_sales_invoices",
+						filters: {
+							company: frm.doc.company,
+							customer: frm.doc.supplier,
+							custom_internal_branch: frm.doc.branch,
+						},
+					}),
 					allow_child_item_selection: true,
 					child_fieldname: "items",
 					child_columns: [

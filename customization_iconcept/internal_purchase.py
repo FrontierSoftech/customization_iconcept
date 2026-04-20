@@ -47,22 +47,55 @@ def make_internal_transfer_sales_invoice(source_name, target_doc=None, args=None
 	return doc
 
 @frappe.whitelist()
-def get_sales_invoices_already_transferred(company):
-	"""
-	Return Sales Invoices that already have an Internal Transfer Purchase Invoice
-	"""
-	return frappe.db.sql_list(
-		"""
-		SELECT DISTINCT inter_company_invoice_reference
-		FROM `tabPurchase Invoice`
-		WHERE
-			docstatus = 1
-			AND is_internal_supplier = 1
-			AND inter_company_invoice_reference IS NOT NULL
-			AND company = %s
-		""",
-		(company,),
+@frappe.validate_and_sanitize_search_inputs
+def query_available_internal_sales_invoices(doctype, txt, searchfield, start, page_len, filters):
+	import json
+	if isinstance(filters, str):
+		filters = json.loads(filters)
 
+	filters = filters or {}
+	company = filters.get("company")
+	customer = filters.get("customer")
+	branch = filters.get("custom_internal_branch")
+	posting_date = filters.get("posting_date")
+
+	extra_conditions = []
+	values = {"company": company, "txt": f"%{txt}%", "page_len": int(page_len), "start": int(start)}
+
+	if customer:
+		extra_conditions.append("AND si.customer = %(customer)s")
+		values["customer"] = customer
+	if branch:
+		extra_conditions.append("AND si.custom_internal_branch = %(branch)s")
+		values["branch"] = branch
+	if posting_date:
+		extra_conditions.append("AND si.posting_date = %(posting_date)s")
+		values["posting_date"] = posting_date
+
+	return frappe.db.sql(
+		f"""
+		SELECT si.name, si.customer, si.posting_date, si.company, si.custom_internal_branch
+		FROM `tabSales Invoice` si
+		WHERE
+			si.docstatus = 1
+			AND si.is_internal_customer = 1
+			AND si.is_return = 0
+			AND si.company = %(company)s
+			AND si.name LIKE %(txt)s
+			AND si.name NOT IN (
+				SELECT DISTINCT pi.inter_company_invoice_reference
+				FROM `tabPurchase Invoice` pi
+				WHERE
+					pi.docstatus = 1
+					AND pi.is_internal_supplier = 1
+					AND pi.inter_company_invoice_reference IS NOT NULL
+			)
+			{"".join(extra_conditions)}
+		ORDER BY si.posting_date DESC
+		LIMIT %(page_len)s OFFSET %(start)s
+		""",
+		values,
+		as_dict=True,
 	)
 
 
