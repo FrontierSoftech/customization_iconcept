@@ -184,7 +184,7 @@ def execute(filters=None):
         {"label": "Date", "fieldname": "Date", "fieldtype": "Date", "width": 100},
         {"label": "Party Name", "fieldname": "Party Name", "fieldtype": "Link", "options": "Customer", "width": 150},
         {"label": "Mailing Name", "fieldname": "Mailing Name", "fieldtype": "Data", "width": 150},
-        # {"label": "Contact No", "fieldname": "Contact No", "fieldtype": "Data", "width": 120},
+        {"label": "Contact No", "fieldname": "Contact No", "fieldtype": "Data", "width": 120},
         {"label": "Brand Name", "fieldname": "Brand Name", "fieldtype": "Data", "width": 120},
         {"label": "Item Name", "fieldname": "Item Name", "fieldtype": "Data", "width": 150},
         {"label": "Item Part No", "fieldname": "Item Part No", "fieldtype": "Link", "options": "Item", "width": 120},
