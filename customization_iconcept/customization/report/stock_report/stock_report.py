@@ -525,12 +525,15 @@ def get_conditions(filters):
         conditions += " AND i.custom_item_sub_lob IN %(sub_lob)s"
 
     if filters.get("from_date") and filters.get("to_date"):
-        conditions += """ AND EXISTS (
-            SELECT 1 FROM `tabStock Ledger Entry` sle
-            WHERE sle.item_code = b.item_code
-            AND sle.warehouse = b.warehouse
-            AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s
-            AND sle.is_cancelled = 0
+        conditions += """ AND (
+            EXISTS (
+                SELECT 1 FROM `tabStock Ledger Entry` sle
+                WHERE sle.item_code = b.item_code
+                AND sle.warehouse = b.warehouse
+                AND sle.posting_date BETWEEN %(from_date)s AND %(to_date)s
+                AND sle.is_cancelled = 0
+            )
+            OR b.ordered_qty > 0
         )"""
 
     return conditions
